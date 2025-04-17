@@ -36,11 +36,11 @@ switch:
     icon: mdi:fountain
     switch_datapoint: 1
   - platform: tuya
-    id: reset_filter_reminder
+    id: filter_reset
     switch_datapoint: 5
     internal: true
   - platform: tuya
-    id: reset_clean_reminder
+    id: pump_reset
     switch_datapoint: 6
     internal: true
   - platform: tuya
@@ -88,12 +88,28 @@ select:
 sensor:
   - platform: tuya
     name: Dias para cambio de filtro
-    id: filter_reminder
+    id: filter_days
     sensor_datapoint: 3
   - platform: tuya
     name: Dias para limpiar
-    id: clean_reminder
+    id: pump_time
     sensor_datapoint: 4
+
+number:
+  - platform: tuya
+    name: Dias para cambio de filtro
+    id: filter_life
+    min_value: 0
+    step: 1
+    max_value: 100
+    number_datapoint: 7
+  - platform: tuya
+    name: Dias para limpiar
+    id: time_clean
+    step: 1
+    min_value: 0
+    max_value: 100
+    number_datapoint: 8
 
 button:
   - platform: template
@@ -101,12 +117,12 @@ button:
     icon: mdi:air-filter
     on_press:
       then:
-        - switch.turn_on: reset_filter_reminder
+        - switch.turn_on: filter_reset
   - platform: template
     name: "Reset Limpieza"
     on_press:
       then:
-        - switch.turn_on: reset_clean_reminder
+        - switch.turn_on: pump_reset
 
 binary_sensor:
   - platform: template
