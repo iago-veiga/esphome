@@ -1,0 +1,19 @@
+substitutions:
+  device_name: luz-armario-dormitorio
+
+packages:
+  device_base: !include base_devices/cct-led-controller-ws02.yaml
+
+esphome:
+  friendly_name: Luz armario dormitorio
+  area: Dormitorio
+
+light:
+  - platform: cwww
+    cold_white: cw_1
+    warm_white: ww_1
+    name: Luz
+    cold_white_color_temperature: 6000 K
+    warm_white_color_temperature: 3000 K
+    constant_brightness: true
+    restore_mode: RESTORE_DEFAULT_OFF

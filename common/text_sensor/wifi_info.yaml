@@ -1,0 +1,9 @@
+platform: wifi_info
+ip_address:
+  name: IP Address
+ssid:
+  name: Red WiFi
+  icon: mdi:wifi
+bssid:
+  name: MAC router WiFi
+  icon: mdi:router-wireless

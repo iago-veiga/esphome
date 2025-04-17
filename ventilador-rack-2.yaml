@@ -1,0 +1,16 @@
+substitutions:
+  device_name: ventilador-rack-2
+
+packages:
+  device_base: !include base_devices/sonoffbasicr2.yaml
+
+esphome:
+  friendly_name: Ventilador 2 rack trastero
+  area: Trastero
+
+fan:
+  - platform: binary
+    name: Ventilador
+    id: fan_1
+    output: relay_1
+    restore_mode: RESTORE_DEFAULT_ON

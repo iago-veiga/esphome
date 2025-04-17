@@ -1,0 +1,47 @@
+---
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+    sdkconfig_options:
+      CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      CONFIG_AUDIO_BOARD_CUSTOM: "y"
+
+packages:
+  api: !include ../common/api.yaml
+  wifi: !include ../common/wifi.yaml
+  ota: !include ../common/ota.yaml
+  logger: !include ../common/logger.yaml
+  web_server: !include ../common/web_server.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  syslog: !include ../common/syslog.yaml
+
+sensor:
+ - <<: !include ../common/sensor/wifi_signal.yaml
+
+text_sensor:
+ - <<: !include ../common/text_sensor/wifi_info.yaml
+
+button:
+  - <<: !include ../common/button/restart.yaml
+
+time:
+  - <<: !include ../common/time/sntp.yaml
+
+switch: 
+  - <<: !include ../common/switch/debug_mode.yaml
+
+external_components:
+  - << : !include ../common/external_components/syslog.yaml
+
+# Sets up Bluetooth LE (Only on ESP32) to allow the user
+# to provision wifi credentials to the device.
+esp32_improv:
+  authorizer: none

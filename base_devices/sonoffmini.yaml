@@ -1,0 +1,52 @@
+---
+esphome:
+  name: ${device_name}
+
+esp8266:
+  board: esp8285
+
+status_led:
+    pin:
+      number: GPIO13
+      inverted: true
+
+packages:
+  api: !include ../common/api.yaml
+  wifi: !include ../common/wifi.yaml
+  ota: !include ../common/ota.yaml
+  logger: !include ../common/logger.yaml
+  web_server: !include ../common/web_server.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  syslog: !include ../common/syslog.yaml
+
+sensor:
+  - <<: !include ../common/sensor/wifi_signal.yaml
+
+text_sensor:
+  - <<: !include ../common/text_sensor/wifi_info.yaml
+
+button:
+  - <<: !include ../common/button/restart.yaml
+
+switch: 
+  - <<: !include ../common/switch/debug_mode.yaml
+
+external_components:
+  - << : !include ../common/external_components/syslog.yaml
+
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay_1
+  - platform: gpio
+    pin: GPIO0
+    id: button_1
+
+binary_sensor:
+  - platform: gpio
+    pin: GPIO04
+    id: switch_1
+    name: switch
+    internal: true
+    filters:
+      - delayed_on_off: 200ms

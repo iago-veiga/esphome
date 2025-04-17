@@ -1,0 +1,43 @@
+---
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+packages:
+  api: !include ../common/api.yaml
+  wifi: !include ../common/wifi.yaml
+  ota: !include ../common/ota.yaml
+  logger: !include ../common/logger.yaml
+  web_server: !include ../common/web_server.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  syslog: !include ../common/syslog.yaml
+
+sensor:
+ - <<: !include ../common/sensor/wifi_signal.yaml
+
+text_sensor:
+ - <<: !include ../common/text_sensor/wifi_info.yaml
+
+button:
+  - <<: !include ../common/button/restart.yaml
+
+time:
+  - <<: !include ../common/time/sntp.yaml
+
+switch: 
+  - <<: !include ../common/switch/debug_mode.yaml
+
+external_components:
+  - << : !include ../common/external_components/syslog.yaml
+
+select:
+  - <<: !include ../common/select/select_logger.yaml
+
+# Sets up Bluetooth LE (Only on ESP32) to allow the user
+# to provision wifi credentials to the device.
+esp32_improv:
+  authorizer: none

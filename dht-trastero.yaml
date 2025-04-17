@@ -1,0 +1,18 @@
+substitutions:
+  device_name: dht-trastero
+
+packages:
+  device_base: !include base_devices/esp01.yaml
+
+esphome:
+  friendly_name: Temperatura y humedad trastero
+  area: Trastero
+
+sensor:
+  - platform: dht
+    model: SI7021
+    pin: GPIO3
+    temperature:
+      name: Temperatura
+    humidity:
+      name: Humedad

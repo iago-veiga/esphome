@@ -1,0 +1,26 @@
+substitutions:
+  device_name: luz-entrada-estudio
+
+packages:
+  device_base: !include base_devices/sonoffmini.yaml
+
+esphome:
+  friendly_name: Luz entrada estudio
+  area: Estudio
+
+light:
+  - platform: binary
+    name: Luz
+    id: light_1
+    output: relay_1
+    restore_mode: RESTORE_DEFAULT_OFF
+
+
+binary_sensor:
+  - id: !extend switch_1
+    on_press:
+      then:
+      - light.toggle: light_1
+    on_release:
+      then:
+      - light.toggle: light_1

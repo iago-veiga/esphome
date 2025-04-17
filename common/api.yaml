@@ -1,0 +1,4 @@
+api:
+  encryption:
+      key: !secret esphome_api_encryption_key
+  reboot_timeout: 12h

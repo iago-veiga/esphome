@@ -1,0 +1,3 @@
+- source: github://dwmw2/esphome_syslog@esp-ipv6-support
+# - source: github://TheStaticTurtle/esphome_syslog
+  components: [syslog]

@@ -1,0 +1,43 @@
+substitutions:
+  device_name: luz-mesa-estudio
+
+packages:
+  device_base: !include base_devices/esp12f.yaml
+
+esphome:
+  friendly_name: Luz mesa estudio
+  area: Estudio
+
+uart:
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600
+
+tuya:
+
+light:
+  - platform: tuya
+    name: Luz
+   
+    color_interlock: true # infinite loop isue when false (false is default)
+    gamma_correct: 1 # has built in gamma correct wil cause issuses when changed
+    default_transition_length: 0s # has built in transitions
+    switch_datapoint: 20
+
+    # for brightness
+    dimmer_datapoint: 22
+    min_value: 0
+    max_value: 1000 # Max value is 1000 (default is 255)
+
+    # for Correlated Color Temperature(CCT) or white channels
+    color_temperature_datapoint: 23
+    color_temperature_invert: true #set to true if connected as stated on the controller
+    color_temperature_max_value: 1000 # Max value is 1000 (default is 255)
+    cold_white_color_temperature: 6000 K # Change depending on LED strip
+    warm_white_color_temperature: 2700 K # Change depending on LED strip
+
+    # for RGB channels
+    color_datapoint: 24
+    color_type: hsv
+
+    restore_mode: RESTORE_DEFAULT_OFF

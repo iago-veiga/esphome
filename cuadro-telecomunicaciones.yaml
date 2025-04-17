@@ -1,0 +1,32 @@
+substitutions:
+  device_name: cuadro-telecomunicaciones
+
+packages:
+  device_base: !include base_devices/sonoffbasicr2.yaml
+
+esphome:
+  friendly_name: Cuadro telecomunicaciones
+  area: Pasillo
+
+switch:
+  - platform: output
+    name: Enchufe
+    id: switch_1
+    output: relay_1
+    restore_mode: ALWAYS_ON
+
+binary_sensor:
+  - id: !extend button_1
+    on_press:
+      then:
+      - switch.toggle: switch_1
+
+button:
+  - platform: template
+    name: Reiniciar electricidad
+    id: button_2
+    on_press:
+      then:
+        - switch.turn_off: switch_1
+        - delay: 1s
+        - switch.turn_on: switch_1

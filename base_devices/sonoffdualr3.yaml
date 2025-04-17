@@ -1,0 +1,116 @@
+---
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_FREERTOS_UNICORE: y
+      CONFIG_FREERTOS_HZ: '1000'
+      CONFIG_PM_USE_RTC_TIMER_REF: y
+      CONFIG_XTAL_FREQ_40: y
+      CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ: '80000000'
+      CONFIG_PM_DFS_INIT_AUTO: n
+      CONFIG_FREERTOS_USE_TICKLESS_IDLE: y
+      CONFIG_PM_ENABLE: y
+      CONFIG_PM_SLP_IRAM_OPT: y
+      CONFIG_PM_RTOS_IDLE_OPT: y
+      CONFIG_ESP_WIFI_SLP_IRAM_OPT: y
+      CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP: y
+      CONFIG_PM_PROFILING: y
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: true
+
+uart:
+  tx_pin: GPIO25
+  rx_pin: GPIO26
+  baud_rate: 38400
+  parity: EVEN
+  stop_bits: 1
+  rx_buffer_size: 1024
+  id: uart_bus
+
+packages:
+  api: !include ../common/api.yaml
+  wifi: !include ../common/wifi.yaml
+  ota: !include ../common/ota.yaml
+  logger: !include ../common/logger.yaml
+  web_server: !include ../common/web_server.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  syslog: !include ../common/syslog.yaml
+
+sensor:
+  - <<: !include ../common/sensor/wifi_signal.yaml
+  - platform: cse7761
+    uart_id: uart_bus
+    update_interval: 500ms
+    voltage:
+      name: Voltaje
+      disabled_by_default: True
+    current_1:
+      name: Intensidad 1
+      id: current_1
+      disabled_by_default: True
+    current_2:
+      name: Intensidad 2
+      id: current_2
+      disabled_by_default: True
+    active_power_1:
+      name: Potencia 1
+    active_power_2:
+      name: Potencia 2
+
+text_sensor:
+  - <<: !include ../common/text_sensor/wifi_info.yaml
+
+button:
+  - <<: !include ../common/button/restart.yaml
+
+external_components:
+  - << : !include ../common/external_components/syslog-esp32.yaml
+
+switch:
+  - <<: !include ../common/switch/debug_mode.yaml
+  - platform: gpio
+    pin: GPIO27
+    id: relay_1
+    restore_mode: RESTORE_DEFAULT_OFF
+    interlock: &interlock [relay_1, relay_2]
+    interlock_wait_time: 200ms
+  - platform: gpio
+    pin: GPIO14
+    id: relay_2
+    restore_mode: RESTORE_DEFAULT_OFF
+    interlock: *interlock
+    interlock_wait_time: 200ms
+  - platform: gpio
+    pin: GPIO0
+    id: button_1
+    inverted: true
+    internal: true
+
+binary_sensor:
+  - platform: gpio
+    id: switch_1
+    pin: 
+      number: GPIO32
+      inverted: true
+      mode: 
+        input: true
+        pullup: true
+    internal: true
+  - platform: gpio
+    id: switch_2
+    pin: 
+      number: GPIO33
+      inverted: true
+      mode: 
+        input: true
+        pullup: true
+    internal: true

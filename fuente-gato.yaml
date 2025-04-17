@@ -1,0 +1,115 @@
+substitutions:
+  device_name: fuente-gato
+
+packages:
+  device_base: !include base_devices/esp32c3.yaml
+
+esphome:
+  friendly_name: Fuente Simba
+  area: Cocina
+
+uart:
+  tx_pin: GPIO21
+  rx_pin: GPIO20
+  baud_rate: 9600
+
+tuya:
+  time_id: sntp_time
+  on_datapoint_update:
+    - sensor_datapoint: 23
+      datapoint_type: bitmask
+      then: 
+        - lambda: |-
+            uint32_t bitmask_value = x;
+            ESP_LOGD("custom", "Valor de bitmask en datapoint 23: %u", bitmask_value);
+            
+            if (bitmask_value != 0) {
+              id(problem).publish_state(true);
+            } else {
+              id(problem).publish_state(false);
+            }
+
+switch:
+  - platform: tuya
+    name: Fuente
+    id: fountain
+    icon: mdi:fountain
+    switch_datapoint: 1
+  - platform: tuya
+    id: reset_filter_reminder
+    switch_datapoint: 5
+    internal: true
+  - platform: tuya
+    id: reset_clean_reminder
+    switch_datapoint: 6
+    internal: true
+  - platform: tuya
+    id: smart_mode
+    switch_datapoint: 102
+    internal: true
+
+light:
+  - platform: tuya
+    name: Led
+    switch_datapoint: 101
+    restore_mode: RESTORE_DEFAULT_ON
+
+select:
+  - platform: tuya
+    enum_datapoint: 2
+    optimistic: true
+    id: fountain_mode
+    options:
+      0: Continue
+      1: Intermitent
+    internal: true
+
+  - platform: template
+    name: Modo
+    optimistic: true
+    options:
+      - Continuo
+      - Modo Inteligente
+    on_value:
+      then:
+        - if:
+            condition:
+              lambda: 'return i == 0;'
+            then:
+              - select.set_index:
+                  id: fountain_mode
+                  index: 0
+        - if:
+            condition:
+              lambda: 'return i == 1;'
+            then:
+              - switch.turn_on: smart_mode
+
+sensor:
+  - platform: tuya
+    name: Dias para cambio de filtro
+    id: filter_reminder
+    sensor_datapoint: 3
+  - platform: tuya
+    name: Dias para limpiar
+    id: clean_reminder
+    sensor_datapoint: 4
+
+button:
+  - platform: template
+    name: Filtro cambiado
+    icon: mdi:air-filter
+    on_press:
+      then:
+        - switch.turn_on: reset_filter_reminder
+  - platform: template
+    name: "Reset Limpieza"
+    on_press:
+      then:
+        - switch.turn_on: reset_clean_reminder
+
+binary_sensor:
+  - platform: template
+    device_class: problem
+    name: Error
+    id: problem

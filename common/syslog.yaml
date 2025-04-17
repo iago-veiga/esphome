@@ -1,0 +1,4 @@
+syslog:
+    ip_address: "192.168.10.99"
+    port: 514
+    strip_colors: true

@@ -1,0 +1,6 @@
+platform: sntp
+id: sntp_time
+timezone: Europe/Madrid
+servers:
+  - hora.roa.es
+  - minuto.roa.es

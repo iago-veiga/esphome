@@ -1,0 +1,16 @@
+substitutions:
+  device_name: luz-principal-salon
+
+packages:
+  device_base: !include base_devices/yeelight-light-ceiling20.yaml
+  mqtt: !include common/mqtt.yaml
+
+esphome:
+  friendly_name: Luz principal salon
+  area: Salón
+  on_boot: 
+    then:
+        - light.control:
+            id: ceiling_light
+            brightness: 80%
+            color_temperature: 2700K
