@@ -28,9 +28,6 @@ button:
 time:
   - <<: !include ../common/time/sntp.yaml
 
-switch: 
-  - <<: !include ../common/switch/debug_mode.yaml
-
 external_components:
   - << : !include ../common/external_components/syslog.yaml
 
