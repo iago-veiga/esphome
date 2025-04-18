@@ -33,7 +33,6 @@ switch:
   - platform: tuya
     name: Fuente
     id: fountain
-    icon: mdi:fountain
     switch_datapoint: 1
   - platform: tuya
     id: filter_reset
@@ -63,27 +62,44 @@ select:
       0: Continue
       1: Intermitent
     internal: true
-
   - platform: template
     name: Modo
-    optimistic: true
+    id: mode_select
+    icon: mdi:fountain
     options:
+      - Apagado
       - Continuo
-      - Modo Inteligente
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return i == 0;'
-            then:
-              - select.set_index:
-                  id: fountain_mode
-                  index: 0
-        - if:
-            condition:
-              lambda: 'return i == 1;'
-            then:
-              - switch.turn_on: smart_mode
+      - Intermitente
+      - Inteligente
+    update_interval: 1s
+    lambda: |-
+      if (!id(fountain).state) {
+        return {"Apagado"};
+      } else if (id(fountain_mode).active_index() == 0 && !id(smart_mode).state) {
+        return {"Continuo"};
+      } else if (id(fountain_mode).active_index() == 1 && !id(smart_mode).state) {
+        return {"Intermitente"};
+      } else if (id(smart_mode).state) {
+        return {"Inteligente"};
+      } else {
+        return {"Apagado"};
+      }
+    set_action:
+      - lambda: |-
+          if (x == "Apagado") {
+            id(fountain).turn_off();
+          } else if (x == "Continuo") {
+            id(fountain).turn_on();
+            id(smart_mode).turn_off();
+            id(fountain_mode).make_call().set_index(0).perform();
+          } else if (x == "Intermitente") {
+            id(fountain).turn_on();
+            id(smart_mode).turn_off();
+            id(fountain_mode).make_call().set_index(1).perform();
+          } else if (x == "Inteligente") {
+            id(fountain).turn_on();
+            id(smart_mode).turn_on();
+          }
 
 sensor:
   - platform: tuya
@@ -113,13 +129,12 @@ number:
 
 button:
   - platform: template
-    name: Filtro cambiado
-    icon: mdi:air-filter
+    name: Restablecer Filtro
     on_press:
       then:
         - switch.turn_on: filter_reset
   - platform: template
-    name: "Reset Limpieza"
+    name: Restablecer limpieza
     on_press:
       then:
         - switch.turn_on: pump_reset
