@@ -21,13 +21,8 @@ tuya:
       then: 
         - lambda: |-
             uint32_t bitmask_value = x;
+            id(bitmask_val) = bitmask_value;
             ESP_LOGD("custom", "Valor de bitmask en datapoint 23: %u", bitmask_value);
-            
-            if (bitmask_value != 0) {
-              id(problem).publish_state(true);
-            } else {
-              id(problem).publish_state(false);
-            }
 
 switch:
   - platform: tuya
@@ -141,6 +136,44 @@ button:
 
 binary_sensor:
   - platform: template
-    device_class: problem
-    name: Error
+    name: Error General
     id: problem
+    device_class: problem
+    lambda: |-
+      return id(bitmask_val) != 0;
+
+  - platform: template
+    name: Limpiar Filtro
+    lambda: |-
+      return (id(bitmask_val) & 0x02) != 0;
+    device_class: problem
+
+  - platform: template
+    name: Limpiar Fuente
+    lambda: |-
+      return (id(bitmask_val) & 0x04) != 0;
+    device_class: problem
+
+  - platform: template
+    name: Sin Agua
+    lambda: |-
+      return (id(bitmask_val) & 0x07) == 0x07;  // solo si están los 3 bits
+    device_class: problem
+
+  - platform: template
+    name: Sin Motor
+    lambda: |-
+      return (id(bitmask_val) & 0x20) != 0;
+    device_class: problem
+
+  - platform: template
+    name: Error Desconocido
+    lambda: |-
+      return (id(bitmask_val) & 0x01) != 0 || (id(bitmask_val) & 0x08) != 0;
+    device_class: problem
+
+globals:
+  - id: bitmask_val
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
