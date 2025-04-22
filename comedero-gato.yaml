@@ -79,6 +79,12 @@ datetime:
             - script.execute: feed_script
       - script.execute: set_next_feed_time_script
 
+globals:
+  - id: last_feed_date_global
+    type: int
+    restore_value: true
+    initial_value: "0"
+
 light:
   - platform: tuya
     name: Led
@@ -107,21 +113,11 @@ number:
   - platform: tuya
     name: feed
     id: feed
-    max_value: 20
+    max_value: 12
     min_value: 1
     step: 1
     number_datapoint: 3
     internal: True
-
-# select:
-#   - platform: template
-#     name: Modo
-#     optimistic: true
-#     id: fountain_mode
-#     options:
-#       0: Continue
-#       1: Intermitent
-#     internal: true
 
 sensor:
   - platform: tuya
@@ -141,6 +137,12 @@ sensor:
     id: last_feed_date
     device_class: timestamp
     icon: mdi:calendar-clock
+    lambda: |-
+      if(id(last_feed_date_global) > 0){
+        return id(last_feed_date_global);
+      } else {
+        return {};
+      }
 
 script:
   - id: feed_script
@@ -171,7 +173,7 @@ script:
           time_t now = id(sntp_time).now().timestamp;
           
           // Publicar el timestamp directamente en el sensor 'last_feed_date'
-          id(last_feed_date).publish_state(now);
+          id(last_feed_date_global) = now;
 
 text_sensor:
   - platform: template
@@ -183,3 +185,4 @@ switch:
     id: switch_1
     name: Comedero
     optimistic: True
+    restore_mode: RESTORE_DEFAULT_ON
