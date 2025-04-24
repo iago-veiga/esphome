@@ -1,5 +1,5 @@
 substitutions:
-  device_name: ac-lavavajilas
+  device_name: ac-lavavajillas
   voltage_divider: "1820.95"
   current_resistor: "0.001"
   current_multiply: "1.0"
