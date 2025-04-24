@@ -144,6 +144,28 @@ sensor:
         return {};
       }
 
+select:
+  - platform: template
+    name: Modo de Alimentación
+    id: feeding_mode
+    optimistic: false
+    options:
+      - Normal
+      - Lento
+    lambda: |-
+      if (id(slow_feed).state) {
+        return {"Lento"};
+      } else {
+        return {"Normal"};
+      }
+    set_action:
+      - lambda: |-
+          if (x == "Normal") {
+            id(slow_feed).turn_off();
+          } else if (x == "Lento") {
+            id(slow_feed).turn_on();
+          }
+
 script:
   - id: feed_script
     then:
@@ -186,3 +208,8 @@ switch:
     name: Comedero
     optimistic: True
     restore_mode: RESTORE_DEFAULT_ON
+  - platform: tuya
+    name: Alimentación lenta
+    id: slow_feed
+    switch_datapoint: 23
+    internal: True
