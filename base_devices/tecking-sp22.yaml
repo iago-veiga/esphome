@@ -59,8 +59,10 @@ output:
       number: GPIO03
       inverted: true
 
+select:
+  - <<: !include ../common/select/select_logger.yaml
+
 switch:
-  - <<: !include ../common/switch/debug_mode.yaml
   - id: switch_1
     platform: gpio
     name: Enchufe
