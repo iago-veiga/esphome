@@ -1,0 +1,16 @@
+substitutions:
+  device_name: ac-lavavajilas
+  voltage_divider: "1820.95"
+  current_resistor: "0.001"
+  current_multiply: "1.0"
+
+packages:
+  device_base: !include base_devices/tecking-sp22.yaml
+
+esphome:
+  friendly_name: Alimentación lavavajillas
+  area: Cocina
+  on_boot:
+    priority: 600
+    then:
+      - output.turn_on: relay_1
