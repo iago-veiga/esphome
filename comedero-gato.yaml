@@ -32,11 +32,11 @@ tuya:
         - lambda: |-
             uint8_t enum_value = x;
             if (enum_value == 0) {
-              id(text_sensor_state).publish_state("idle");
+              id(text_sensor_state).publish_state("standby");
             } else if (enum_value == 1){
               id(text_sensor_state).publish_state("feeding");
             } else if (enum_value == 2){
-              id(text_sensor_state).publish_state("finishing");
+              id(text_sensor_state).publish_state("done");
             } else {
               id(text_sensor_state).publish_state("unknown");
             }
@@ -136,7 +136,7 @@ sensor:
     id: battery
     sensor_datapoint: 10
   - platform: tuya
-    id: state_feeder
+    id: feed_state
     sensor_datapoint: 4    
   - platform: template
     name: Porcion ultima comida
