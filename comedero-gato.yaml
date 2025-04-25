@@ -68,7 +68,7 @@ button:
     on_press:
       - lambda: |-
           id(quick_feed).turn_on();
-          delay(500);
+          delay(750);
           id(quick_feed).turn_off();
 
 datetime:
@@ -121,10 +121,12 @@ number:
   - platform: tuya
     name: feed
     id: feed
-    max_value: 12
-    min_value: 1
+    max_value: 20
+    min_value: 2
     step: 1
     number_datapoint: 3
+    datapoint_hidden:
+      datapoint_type: int
     internal: True
 
 sensor:
@@ -179,10 +181,12 @@ script:
     then:
       - lambda: |-
           auto call = id(feed).make_call();
-          call.set_value(0);
-          call.perform();
-          call.set_value(int(id(portions).state));
-          call.perform();
+          if (id(portions).state == 1) {
+            id(quick_feed_button).press();
+          }else{
+            call.set_value(int(id(portions).state));
+            call.perform();
+          }
   - id: set_next_feed_time_script
     then: 
       - lambda: |-
