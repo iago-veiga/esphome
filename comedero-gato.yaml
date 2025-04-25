@@ -32,27 +32,43 @@ tuya:
         - lambda: |-
             uint8_t enum_value = x;
             if (enum_value == 0) {
-              id(text_sensor_state).publish_state("idle");
+              id(text_sensor_state).publish_state("standby");
             } else if (enum_value == 1){
               id(text_sensor_state).publish_state("feeding");
             } else if (enum_value == 2){
-              id(text_sensor_state).publish_state("finishing");
+              id(text_sensor_state).publish_state("done");
+              if (id(quick_feed).state) {
+                id(quick_feed).turn_off();
+              }
             } else {
               id(text_sensor_state).publish_state("unknown");
             }
-
     - sensor_datapoint: 14
       datapoint_type: int
       then: 
         - script.execute: set_last_feed_date_script
         - lambda: |-
             id(last_feed_portions).publish_state(x);
+    - sensor_datapoint: 13
+      datapoint_type: bitmask
+      then:
+        - lambda: |-
+            id(bitmask_val) = x;
+            ESP_LOGD("custom", "Valor de bitmask en datapoint 23: %u", bitmask_val);
 
 binary_sensor:
   - platform: template
-    device_class: problem
-    name: Error
+    name: Error General
     id: problem
+    device_class: problem
+    lambda: |-
+      return id(bitmask_val) != 0;
+  - platform: template
+    name: Poca comida
+    id: low_food
+    device_class: problem
+    lambda: |-
+      return (id(bitmask_val) & 0x02) != 0;
 
 button:
   - platform: template
@@ -62,6 +78,12 @@ button:
       then:
         - script.execute: feed_script
         - script.execute: set_next_feed_time_script
+  - platform: template
+    name: Alimentación rápida
+    id: quick_feed_button
+    on_press:
+      - lambda: |-
+          id(quick_feed).turn_on();
 
 datetime:
   - platform: template
@@ -78,6 +100,16 @@ datetime:
           then: 
             - script.execute: feed_script
       - script.execute: set_next_feed_time_script
+
+globals:
+  - id: last_feed_date_global
+    type: int
+    restore_value: true
+    initial_value: "0"
+  - id: bitmask_val
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
 
 light:
   - platform: tuya
@@ -108,20 +140,12 @@ number:
     name: feed
     id: feed
     max_value: 20
-    min_value: 1
+    min_value: 2
     step: 1
     number_datapoint: 3
+    datapoint_hidden:
+      datapoint_type: int
     internal: True
-
-# select:
-#   - platform: template
-#     name: Modo
-#     optimistic: true
-#     id: fountain_mode
-#     options:
-#       0: Continue
-#       1: Intermitent
-#     internal: true
 
 sensor:
   - platform: tuya
@@ -130,7 +154,7 @@ sensor:
     id: battery
     sensor_datapoint: 10
   - platform: tuya
-    id: state_feeder
+    id: feed_state
     sensor_datapoint: 4    
   - platform: template
     name: Porcion ultima comida
@@ -141,16 +165,46 @@ sensor:
     id: last_feed_date
     device_class: timestamp
     icon: mdi:calendar-clock
+    lambda: |-
+      if(id(last_feed_date_global) > 0){
+        return id(last_feed_date_global);
+      } else {
+        return {};
+      }
+
+select:
+  - platform: template
+    name: Modo de Alimentación
+    id: feeding_mode
+    optimistic: false
+    options:
+      - Normal
+      - Lento
+    lambda: |-
+      if (id(slow_feed).state) {
+        return {"Lento"};
+      } else {
+        return {"Normal"};
+      }
+    set_action:
+      - lambda: |-
+          if (x == "Normal") {
+            id(slow_feed).turn_off();
+          } else if (x == "Lento") {
+            id(slow_feed).turn_on();
+          }
 
 script:
   - id: feed_script
     then:
       - lambda: |-
-          auto call = id(feed).make_call();
-          call.set_value(0);
-          call.perform();
-          call.set_value(int(id(portions).state));
-          call.perform();
+          if (id(portions).state == 1) {
+            id(quick_feed_button).press();
+          }else{
+            auto call = id(feed).make_call();
+            call.set_value(int(id(portions).state));
+            call.perform();
+          }
   - id: set_next_feed_time_script
     then: 
       - lambda: |-
@@ -171,7 +225,7 @@ script:
           time_t now = id(sntp_time).now().timestamp;
           
           // Publicar el timestamp directamente en el sensor 'last_feed_date'
-          id(last_feed_date).publish_state(now);
+          id(last_feed_date_global) = now;
 
 text_sensor:
   - platform: template
@@ -183,3 +237,14 @@ switch:
     id: switch_1
     name: Comedero
     optimistic: True
+    restore_mode: RESTORE_DEFAULT_ON
+  - platform: tuya
+    name: Alimentación lenta
+    id: slow_feed
+    switch_datapoint: 23
+    internal: True
+  - platform: tuya
+    name: Alimentación rápida
+    id: quick_feed
+    switch_datapoint: 2
+    internal: True
