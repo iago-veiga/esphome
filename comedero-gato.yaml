@@ -198,10 +198,10 @@ script:
   - id: feed_script
     then:
       - lambda: |-
-          auto call = id(feed).make_call();
           if (id(portions).state == 1) {
             id(quick_feed_button).press();
           }else{
+            auto call = id(feed).make_call();
             call.set_value(int(id(portions).state));
             call.perform();
           }
