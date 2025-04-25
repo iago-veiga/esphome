@@ -37,22 +37,38 @@ tuya:
               id(text_sensor_state).publish_state("feeding");
             } else if (enum_value == 2){
               id(text_sensor_state).publish_state("done");
+              if (id(quick_feed).state) {
+                id(quick_feed).turn_off();
+              }
             } else {
               id(text_sensor_state).publish_state("unknown");
             }
-
     - sensor_datapoint: 14
       datapoint_type: int
       then: 
         - script.execute: set_last_feed_date_script
         - lambda: |-
             id(last_feed_portions).publish_state(x);
+    - sensor_datapoint: 13
+      datapoint_type: bitmask
+      then:
+        - lambda: |-
+            id(bitmask_val) = x;
+            ESP_LOGD("custom", "Valor de bitmask en datapoint 23: %u", bitmask_val);
 
 binary_sensor:
   - platform: template
-    device_class: problem
-    name: Error
+    name: Error General
     id: problem
+    device_class: problem
+    lambda: |-
+      return id(bitmask_val) != 0;
+  - platform: template
+    name: Poca comida
+    id: low_food
+    device_class: problem
+    lambda: |-
+      return (id(bitmask_val) & 0x02) != 0;
 
 button:
   - platform: template
@@ -68,8 +84,6 @@ button:
     on_press:
       - lambda: |-
           id(quick_feed).turn_on();
-          delay(750);
-          id(quick_feed).turn_off();
 
 datetime:
   - platform: template
@@ -92,6 +106,10 @@ globals:
     type: int
     restore_value: true
     initial_value: "0"
+  - id: bitmask_val
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
 
 light:
   - platform: tuya
