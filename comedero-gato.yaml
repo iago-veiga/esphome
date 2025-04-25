@@ -62,6 +62,14 @@ button:
       then:
         - script.execute: feed_script
         - script.execute: set_next_feed_time_script
+  - platform: template
+    name: Alimentación rápida
+    id: quick_feed_button
+    on_press:
+      - lambda: |-
+          id(quick_feed).turn_on();
+          delay(500);
+          id(quick_feed).turn_off();
 
 datetime:
   - platform: template
@@ -212,4 +220,9 @@ switch:
     name: Alimentación lenta
     id: slow_feed
     switch_datapoint: 23
+    internal: True
+  - platform: tuya
+    name: Alimentación rápida
+    id: quick_feed
+    switch_datapoint: 2
     internal: True
