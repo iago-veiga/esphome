@@ -5,10 +5,10 @@ esphome:
 esp8266:
   board: esp01_1m
 
-status_led:
-    pin:
-      number: GPIO2
-      inverted: true
+# status_led:
+#     pin:
+#       number: GPIO2
+#       inverted: true
 
 packages:
   api: !include ../common/api.yaml
@@ -28,8 +28,8 @@ text_sensor:
 button:
   - <<: !include ../common/button/restart.yaml
 
-switch: 
-  - <<: !include ../common/switch/debug_mode.yaml
-
 external_components:
   - << : !include ../common/external_components/syslog.yaml
+
+select:
+  - << : !include ../common/select/select_logger.yaml

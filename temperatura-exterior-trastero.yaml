@@ -1,0 +1,19 @@
+substitutions:
+  device_name: temperatura-exterior-trastero
+
+packages:
+  device_base: !include base_devices/esp01.yaml
+
+esphome:
+  friendly_name: Temperatura exterior trastero
+  area: Trastero
+
+one_wire:
+  - platform: gpio
+    pin: GPIO2
+
+sensor:
+  - platform: dallas_temp
+    address: 0x0a3c01f0967aaf28
+    id: temp_1
+    name: temperature
