@@ -15,19 +15,19 @@ packages:
   syslog: !include ../common/syslog.yaml
 
 sensor:
-    - <<: !include ../common/sensor/wifi_signal.yaml
+  - <<: !include ../common/sensor/wifi_signal.yaml
 
 text_sensor:
-    - <<: !include ../common/text_sensor/wifi_info.yaml
+  - <<: !include ../common/text_sensor/wifi_info.yaml
 
 button:
-    - <<: !include ../common/button/restart.yaml
+  - <<: !include ../common/button/restart.yaml
 
 select:
-  - << : !include ../common/select/select_logger.yaml
+  - <<: !include ../common/select/select_logger.yaml
 
 external_components:
-  - << : !include ../common/external_components/syslog.yaml
+  - <<: !include ../common/external_components/syslog.yaml
 
 output:
   - platform: esp8266_pwm
