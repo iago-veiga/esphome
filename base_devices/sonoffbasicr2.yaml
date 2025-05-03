@@ -39,8 +39,8 @@ text_sensor:
 button:
   - <<: !include ../common/button/restart.yaml
 
-switch: 
-  - <<: !include ../common/switch/debug_mode.yaml
+select:
+  - <<: !include ../common/select/select_logger.yaml
 
 external_components:
-  - << : !include ../common/external_components/syslog.yaml
+  - <<: !include ../common/external_components/syslog.yaml
