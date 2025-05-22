@@ -1,0 +1,18 @@
+substitutions:
+  device_name: arenero-gato
+
+packages:
+  device_base: !include base_devices/esp12f.yaml
+
+esphome:
+  friendly_name: Arenero gatos
+  area: Baño pasillo
+
+
+uart:
+  rx_pin: GPIO3
+  tx_pin: GPIO1
+  baud_rate: 115200
+
+tuya:
+  time_id: sntp_time
