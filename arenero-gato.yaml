@@ -16,3 +16,77 @@ uart:
 
 tuya:
   time_id: sntp_time
+
+
+switch:
+  - platform: tuya
+    name: Limpiar
+    id: start
+    icon: mdi:broom
+    switch_datapoint: 3
+
+  - platform: tuya
+    name: Limpieza automática
+    icon: mdi:robot-vacuum
+    id: auto_clean
+    switch_datapoint: 4
+
+  - platform: tuya
+    name: Deodorizador
+    id: deodorization
+    icon: mdi:leaf
+    switch_datapoint: 17
+
+number:
+  - platform: tuya
+    name: Tiempo para comenzar la limpieza
+    id: delay_clean_time
+    number_datapoint: 5
+    min_value: 1
+    max_value: 600
+    step: 1
+
+
+sensor:
+  - platform: tuya
+    name: Peso gato
+    unit_of_measurement: 'g'
+    icon: mdi:scale
+    device_class: weight
+    id: cat_weight
+    sensor_datapoint: 6
+
+  - platform: tuya
+    name: Excreciones del dia
+    id: excretion_times_day
+    unit_of_measurement: 'veces'
+    icon: mdi:counter
+    state_class: total_increasing
+    sensor_datapoint: 7
+
+  - platform: tuya
+    name: Tiempo de excreccion
+    unit_of_measurement: 's'
+    icon: mdi:clock-time-four-outline
+    device_class: duration
+    state_class: measurement
+    id: excretion_time
+    sensor_datapoint: 8
+
+  - platform: tuya
+    name: Temperatura
+    id: temperature
+    unit_of_measurement: '°C'
+    icon: mdi:thermometer
+    device_class: temperature
+    state_class: measurement
+    sensor_datapoint: 101
+
+  - platform: tuya
+    name: Humedad
+    id: humidity
+    unit_of_measurement: '%'
+    icon: mdi:water-percent
+    device_class: humidity
+    state_class: measurement
+    sensor_datapoint: 102
