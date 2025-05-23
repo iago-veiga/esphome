@@ -37,6 +37,18 @@ switch:
     icon: mdi:leaf
     switch_datapoint: 17
 
+  - platform: tuya
+    name: Bloqueo infantil
+    id: child_lock
+    icon: mdi:lock
+    switch_datapoint: 103
+
+  - platform: tuya
+    name: Infrarrojo
+    id: infrared
+    icon: mdi:motion-sensor
+    switch_datapoint: 104
+
 number:
   - platform: tuya
     name: Tiempo para comenzar la limpieza
@@ -90,3 +102,11 @@ sensor:
     device_class: humidity
     state_class: measurement
     sensor_datapoint: 102
+
+  - platform: tuya
+    name: Peso en tiempo real
+    unit_of_measurement: 'g'
+    icon: mdi:scale
+    device_class: weight
+    id: real_time_weight
+    sensor_datapoint: 116
