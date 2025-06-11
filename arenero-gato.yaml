@@ -49,6 +49,37 @@ switch:
     icon: mdi:motion-sensor
     switch_datapoint: 104
 
+  - platform: tuya
+    name: Luz panel
+    id: panel_light
+    icon: mdi:lightbulb
+    inverted: true
+    switch_datapoint: 106
+
+  - platform: tuya
+    name: Cambiar arena
+    id: replace_litter
+    icon: mdi-autorenew
+    switch_datapoint: 111
+
+  - platform: tuya
+    name: Inicilizar arenero
+    id: initialize_litter_box
+    icon: mdi:restart
+    switch_datapoint: 115
+
+  - platform: tuya
+    name: Cambiar bolsa
+    id: replace_bag
+    icon: mdi-delete-empty
+    switch_datapoint: 117
+
+  - platform: tuya
+    name: Calibrar peso
+    id: calibrate_weight
+    icon: mdi:mdi-scale-balance
+    switch_datapoint: 118
+
 number:
   - platform: tuya
     name: Tiempo para comenzar la limpieza
@@ -77,7 +108,7 @@ sensor:
     sensor_datapoint: 7
 
   - platform: tuya
-    name: Tiempo de excreccion
+    name: Tiempo ultima excreccion
     unit_of_measurement: 's'
     icon: mdi:clock-time-four-outline
     device_class: duration
