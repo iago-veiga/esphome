@@ -42,7 +42,7 @@ sensor:
     energy:
       name: Actor potencia
       filters:
-        - throttle: 10s
+        - throttle_average: 10s
     apparent_power:
       name: "Sonoff Pow R2 Apparent Power"
       filters:
