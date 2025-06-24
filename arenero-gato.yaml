@@ -59,7 +59,7 @@ switch:
   - platform: tuya
     name: Cambiar arena
     id: replace_litter
-    icon: mdi-autorenew
+    icon: mdi:autorenew
     switch_datapoint: 111
 
   - platform: tuya
@@ -71,13 +71,13 @@ switch:
   - platform: tuya
     name: Cambiar bolsa
     id: replace_bag
-    icon: mdi-delete-empty
+    icon: mdi:delete-empty
     switch_datapoint: 117
 
   - platform: tuya
     name: Calibrar peso
     id: calibrate_weight
-    icon: mdi:mdi-scale-balance
+    icon: mdi:scale-balance
     switch_datapoint: 118
 
 number:
@@ -98,7 +98,14 @@ sensor:
     device_class: weight
     id: cat_weight
     sensor_datapoint: 6
-
+    # internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (id(cat_weight).state >= 5001 && id(cat_weight).state <= 8000) {
+              return id(weight_cat1).publish_state(x);}
+            else if (id(cat_weight).state >= 3500 && id(cat_weight).state <= 5000) {
+              return id(weight_cat2).publish_state(x);}
   - platform: tuya
     name: Excreciones del dia
     id: excretion_times_day
@@ -141,3 +148,17 @@ sensor:
     device_class: weight
     id: real_time_weight
     sensor_datapoint: 116
+
+  - platform: template
+    name: Peso Simba
+    id: weight_cat1
+    unit_of_measurement: 'g'
+    device_class: weight
+    icon: mdi:weight-kilogram
+
+  - platform: template
+    name: Peso Fada
+    id: weight_cat2
+    unit_of_measurement: 'g'
+    device_class: weight
+    icon: mdi:weight-kilogram
