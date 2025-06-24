@@ -1,0 +1,10 @@
+substitutions:
+  device_name: ac-subwoofer
+
+packages:
+  device_base: !include base_devices/sonoffs60.yaml
+
+esphome:
+  friendly_name: Alimentación subwoofer
+  area: Salon
+
