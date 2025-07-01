@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Arenero gatos
-  area: Baño pasillo
+  area: "Baño pasillo"
 
 
 uart:
@@ -84,9 +84,29 @@ number:
   - platform: tuya
     name: Tiempo para comenzar la limpieza
     id: delay_clean_time
+    icon: mdi:clock-start
     number_datapoint: 5
-    min_value: 1
-    max_value: 600
+    min_value: 0
+    max_value: 60
+    step: 1
+    unit_of_measurement: 'min'
+
+  - platform: tuya
+    name: Intervalo entre limpiezas
+    id: cleaning_interval
+    number_datapoint: 105
+    min_value: 0
+    max_value: 120
+    icon: mdi:timelapse
+    step: 1
+    unit_of_measurement: 'min'
+
+  - platform: tuya
+    name: Umbral de bolsa llena
+    id: full_bag_threshold
+    number_datapoint: 114
+    min_value: 0
+    max_value: 15
     step: 1
 
 
