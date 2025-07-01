@@ -1,0 +1,10 @@
+substitutions:
+  device_name: ac-arenero
+
+packages:
+  device_base: !include base_devices/sonoffs60.yaml
+
+esphome:
+  friendly_name: Alimentación arenero
+  area: bano_pasillo
+
