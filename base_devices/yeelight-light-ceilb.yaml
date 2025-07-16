@@ -1,0 +1,109 @@
+---
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32doit-devkit-v1
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_FREERTOS_UNICORE: y
+      # Please uncomment these parameters if fast booting is important to you
+      # CONFIG_BOOTLOADER_SKIP_VALIDATE_ON_POWER_ON: y
+      # CONFIG_BOOTLOADER_LOG_LEVEL_NONE: y
+      # CONFIG_LOG_DEFAULT_LEVEL_NONE: y
+    advanced:
+      ignore_efuse_mac_crc: true
+      ignore_efuse_custom_mac: true
+
+packages:
+  api: !include ../common/api.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  logger: !include ../common/logger.yaml
+  ota: !include ../common/ota.yaml
+  wifi: !include ../common/wifi.yaml
+  web_server: !include ../common/web_server.yaml
+  syslog: !include ../common/syslog.yaml
+
+sensor:
+  - <<: !include ../common/sensor/wifi_signal.yaml
+
+text_sensor:
+  - <<: !include ../common/text_sensor/wifi_info.yaml
+
+button:
+  - <<: !include ../common/button/restart.yaml
+
+select:
+  - <<: !include ../common/select/select_logger.yaml
+
+external_components:
+  - <<: !include ../common/external_components/syslog-esp32.yaml
+
+output:
+  - platform: ledc
+    pin: GPIO19
+    id: output_warm
+    power_supply: power
+#    min_power: 0.13
+    max_power: 0.50
+  - platform: ledc
+    pin: GPIO21
+    id: output_cold
+    power_supply: power
+#    min_power: 0.13
+    max_power: 0.96
+
+  - platform: ledc
+    pin: GPIO23
+    id: output_nightlight
+    power_supply: power
+
+  - platform: ledc
+    pin: GPIO33
+    id: output_red
+    power_supply: power
+  - platform: ledc
+    pin: GPIO26
+    id: output_green
+    power_supply: power
+  - platform: ledc
+    pin: GPIO27
+    id: output_blue
+    power_supply: power
+
+power_supply:
+  - id: power
+    pin: GPIO22
+    enable_time: 0s
+    keep_on_time: 0s
+
+light:
+  - platform: monochromatic
+    name: Luz nocturna
+    id: night_light
+    output: output_nightlight
+    gamma_correct: 0
+    on_turn_on:
+      - light.turn_off: ceiling_light
+  - platform: cwww
+    name: Luz
+    id: ceiling_light
+    restore_mode: RESTORE_DEFAULT_OFF
+    cold_white: output_cold
+    warm_white: output_warm
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+    constant_brightness: true
+    gamma_correct: 0
+    on_turn_on:
+      - light.turn_off: night_light
+    on_turn_off: 
+      - light.turn_off: rgb_light
+  - platform: rgb
+    name: Luz ambiente
+    id: rgb_light
+    red: output_red
+    green: output_green
+    blue: output_blue
+    gamma_correct: 0
