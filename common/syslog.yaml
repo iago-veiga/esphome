@@ -1,4 +1,7 @@
+udp:
+    addresses: ["192.168.10.99"]
+    id: syslog_udp
+
 syslog:
-    ip_address: "192.168.10.99"
-    port: 514
-    strip_colors: true
+    udp_id: syslog_udp
+    port: 5140
