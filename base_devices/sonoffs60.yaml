@@ -62,9 +62,6 @@ text_sensor:
 button:
   - <<: !include ../common/button/restart.yaml
 
-external_components:
-  - <<: !include ../common/external_components/syslog-esp32.yaml
-
 select:
   - <<: !include ../common/select/select_logger.yaml
 
@@ -86,6 +83,7 @@ binary_sensor:
     internal: true
     pin:
       number: GPIO9
+      ignore_strapping_warning: true
     on_press:
       - switch.toggle: switch_1
     filters:

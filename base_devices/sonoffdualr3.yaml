@@ -72,11 +72,11 @@ text_sensor:
 button:
   - <<: !include ../common/button/restart.yaml
 
-external_components:
-  - <<: !include ../common/external_components/syslog-esp32.yaml
-
 select:
   - <<: !include ../common/select/select_logger.yaml
+
+time:
+  - <<: !include ../common/time/sntp.yaml
 
 switch:
   - platform: gpio
