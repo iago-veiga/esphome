@@ -1,13 +1,13 @@
 substitutions:
-  device_name: ac-luz-entrada-estudio
+  device_name: ac-luz-entrada-dormitorio
 
 packages:
   device_base: !include base_devices/sonoffmini.yaml
   mqtt: !include common/mqtt.yaml
 
 esphome:
-  friendly_name: Alimentación luz entrada estudio
-  area: Estudio
+  friendly_name: Alimentación luz entrada dormitorio
+  area: Dormitorio
   on_boot:
     priority: 600
     then:
@@ -18,7 +18,7 @@ binary_sensor:
     on_state:
       then:
         - mqtt.publish_json:
-            topic: luz-entrada-estudio/light/luz/command
+            topic: luz-entrada-dormitorio/light/luz/command
             payload: |-
               root["state"] = "TOGGLE";
 
