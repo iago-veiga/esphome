@@ -49,8 +49,8 @@ text_sensor:
 button:
   - <<: !include ../common/button/restart.yaml
 
-external_components:
-  - << : !include ../common/external_components/syslog.yaml
+time:
+  - <<: !include ../common/time/sntp.yaml
 
 output:
   - id: relay_1

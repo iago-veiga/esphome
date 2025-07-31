@@ -28,13 +28,5 @@ button:
 time:
   - <<: !include ../common/time/sntp.yaml
 
-external_components:
-  - << : !include ../common/external_components/syslog.yaml
-
 select:
   - <<: !include ../common/select/select_logger.yaml
-
-# Sets up Bluetooth LE (Only on ESP32) to allow the user
-# to provision wifi credentials to the device.
-esp32_improv:
-  authorizer: none
