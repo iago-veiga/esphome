@@ -1,0 +1,29 @@
+substitutions:
+  device_name: ac-luz-principal-dormitorio
+
+packages:
+  device_base: !include base_devices/sonoffmini.yaml
+  mqtt: !include common/mqtt.yaml
+
+esphome:
+  friendly_name: Alimentación luz principal dormitorio
+  area: dormitorio
+  on_boot:
+    priority: 600
+    then:
+      - output.turn_on: relay_1
+
+binary_sensor:
+  - id: !extend switch_1
+    on_state:
+      then:
+        - mqtt.publish_json:
+            topic: luz-principal-dormitorio/light/luz/command
+            payload: |-
+              root["state"] = "TOGGLE";
+
+switch:
+  - platform: output
+    name: "AC"
+    output: 'relay_1'
+    restore_mode: ALWAYS_ON

@@ -6,3 +6,4 @@ wifi:
       ssid: ${device_name} AP
       password: !secret esphome_fallback_ap_password
   reboot_timeout: 12h
+  # use_address: 192.168.10.XX
