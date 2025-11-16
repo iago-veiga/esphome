@@ -7,7 +7,7 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz principal estudio
-  area: Estudio
+  area: estudio
   on_boot:
     priority: 600
     then:

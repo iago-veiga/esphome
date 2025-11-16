@@ -8,7 +8,7 @@ packages:
 esphome:
   friendly_name: Luz principal dormitorio
   area: dormitorio
-  on_boot: 
+  on_boot:
     then:
         - light.control:
             id: ceiling_light
