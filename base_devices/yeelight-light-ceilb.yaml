@@ -53,12 +53,10 @@ output:
     power_supply: power
 #    min_power: 0.13
     max_power: 0.96
-
   - platform: ledc
     pin: GPIO23
     id: output_nightlight
     power_supply: power
-
   - platform: ledc
     pin: GPIO33
     id: output_red

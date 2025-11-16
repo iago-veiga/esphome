@@ -2,25 +2,15 @@ substitutions:
   device_name: luz-principal-dormitorio
 
 packages:
-  device_base: !include base_devices/sonoffmini.yaml
+  device_base: !include base_devices/yeelight-light-ceilb.yaml
+  mqtt: !include common/mqtt.yaml
 
 esphome:
   friendly_name: Luz principal dormitorio
-  area: Dormitorio
-
-light:
-  - platform: binary
-    name: Luz
-    id: light_1
-    output: relay_1
-    restore_mode: RESTORE_DEFAULT_OFF
-
-
-binary_sensor:
-  - id: !extend switch_1
-    on_press:
-      then:
-      - light.toggle: light_1
-    on_release:
-      then:
-      - light.toggle: light_1
+  area: dormitorio
+  on_boot:
+    then:
+        - light.control:
+            id: ceiling_light
+            brightness: 80%
+            color_temperature: 2700K
