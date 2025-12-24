@@ -6,62 +6,7 @@ packages:
 
 esphome:
   friendly_name: Gateway BLE
-  area: Pasillo
+  area: pasillo
 
-# bluetooth_proxy:
-#     active: true
-
-esp32_ble_tracker:
-  scan_parameters:
-    active: true
-
-
-sensor:
-  - platform: xiaomi_miscale
-    mac_address: 5C:CA:D3:53:02:E6
-    weight:
-      name: "Xiaomi Mi Scale Peso"
-      id: weight_miscale
-      on_value:
-        then:
-          - lambda: |-
-              if (id(weight_miscale).state >= 65 && id(weight_miscale).state <= 84) {
-                return id(weight_user1).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state <= 64.99) {
-                return id(weight_user2).publish_state(x);}
-
-    impedance:
-      name: "Xiaomi Mi Scale Impedancia"
-      id: impedance_miscale
-      on_value:
-        then:
-          - lambda: |-
-              if (id(weight_miscale).state >= 65 && id(weight_miscale).state <= 84) {
-                return id(impedance_user1).publish_state(x);}
-              else if (id(weight_miscale).state >= 50 && id(weight_miscale).state < 65) {
-                return id(impedance_user2).publish_state(x);}
-
-  - platform: template
-    name: Peso Iago
-    id: weight_user1
-    unit_of_measurement: 'kg'
-    icon: mdi:weight-kilogram
-    accuracy_decimals: 2
-  - platform: template
-    name: Impedancia Iago
-    id: impedance_user1
-    unit_of_measurement: 'Ω'
-    icon: mdi:omega
-    accuracy_decimals: 0
-  - platform: template
-    name: Peso Marta
-    id: weight_user2
-    unit_of_measurement: 'kg'
-    icon: mdi:weight-kilogram
-    accuracy_decimals: 2
-  - platform: template
-    name: Impedancia Marta
-    id: impedance_user2
-    unit_of_measurement: 'Ω'
-    icon: mdi:omega
-    accuracy_decimals: 0
+bluetooth_proxy:
+  active: True
