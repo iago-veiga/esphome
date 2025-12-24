@@ -7,10 +7,8 @@ esp32:
   framework:
     type: esp-idf
     version: recommended
-    # Custom sdkconfig options
     sdkconfig_options:
       COMPILER_OPTIMIZATION_SIZE: y
-    # Advanced tweaking options
     advanced:
       ignore_efuse_mac_crc: false
 

@@ -7,6 +7,7 @@ esp32:
   variant: esp32s3
   framework:
     type: esp-idf
+    version: recommended
 
     sdkconfig_options:
       CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: "y"
