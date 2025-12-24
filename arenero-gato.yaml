@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Arenero gatos
-  area: "Baño pasillo"
+  area: bano_pasillo
 
 
 uart:

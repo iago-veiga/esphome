@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Ventilador 2 rack trastero
-  area: Trastero
+  area: trastero
 
 fan:
   - platform: binary

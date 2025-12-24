@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz trastero
-  area: Trastero
+  area: trastero
 
 light:
   - platform: binary

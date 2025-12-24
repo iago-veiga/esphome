@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz mesa estudio
-  area: Estudio
+  area: estudio
 
 uart:
   tx_pin: GPIO1

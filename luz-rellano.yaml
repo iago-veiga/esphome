@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz rellano
-  area: Rellano
+  area: rellano
 
 light:
   - platform: binary

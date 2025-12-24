@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Temperatura exterior trastero
-  area: Trastero
+  area: trastero
 
 one_wire:
   - platform: gpio

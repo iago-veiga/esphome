@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Extractor trastero
-  area: Trastero
+  area: trastero
 
 fan:
   - platform: binary

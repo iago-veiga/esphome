@@ -6,5 +6,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación lavadora
-  area: Cocina
+  area: cocina
 

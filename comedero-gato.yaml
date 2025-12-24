@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Comedero Simba
-  area: Cocina
+  area: cocina
 
 uart:
   tx_pin: GPIO21

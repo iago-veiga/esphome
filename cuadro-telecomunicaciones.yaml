@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Cuadro telecomunicaciones
-  area: Pasillo
+  area: pasillo
 
 switch:
   - platform: output

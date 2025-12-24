@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Consumo electrico
+  area: pasillo
 
 # Example configuration entry
 uart:

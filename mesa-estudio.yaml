@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Mesa estudio
-  area: Estudio
+  area: estudio
 
 switch:
   - platform: output
