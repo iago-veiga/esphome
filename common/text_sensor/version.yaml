@@ -1,4 +1,5 @@
 platform: version
 name: Version ESPHome
+icon: mdi:tag-outline
 hide_timestamp: true
 entity_category: diagnostic

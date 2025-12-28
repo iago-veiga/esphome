@@ -1,3 +1,4 @@
 platform: status
 name: Estado
+device_class: connectivity
 entity_category: diagnostic

@@ -1,6 +1,7 @@
   - platform: template
     name: "Modo Debug"
     id: switch_debug
+    icon: mdi:bug
     optimistic: true
     restore_mode: ALWAYS_OFF
     turn_on_action:

@@ -1,3 +1,4 @@
 platform: wifi_signal
 name: Señal WiFi
+icon: mdi:wifi
 entity_category: diagnostic
