@@ -1,6 +1,7 @@
 mqtt:
-  broker: 192.168.10.1
-  username: iot
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
   password: !secret mqtt_password
+  topic_prefix: ${device_name}
   discover_ip: false
   discovery: false
