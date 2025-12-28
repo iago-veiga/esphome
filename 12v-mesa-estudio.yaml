@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Fuente alimentación mesa estudio
-  area: Estudio
+  area: estudio
 
 switch:
   - platform: output

@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz baño pasillo
-  area: Baño pasillo
+  area: bano_pasillo
 
 light:
   - platform: binary

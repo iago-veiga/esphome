@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz armario estudio
-  area: Estudio
+  area: estudio
 
 light:
   - platform: cwww

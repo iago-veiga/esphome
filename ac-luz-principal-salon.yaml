@@ -7,7 +7,7 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz principal salón
-  area: Salón
+  area: salon
   on_boot:
     priority: 600
     then:

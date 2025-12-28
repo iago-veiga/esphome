@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Persiana dormitorio
-  area: Dormitorio
+  area: dormitorio
 
 cover:
   - platform: current_based

@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Temperatura y humedad trastero
-  area: Trastero
+  area: trastero
 
 sensor:
   - platform: dht

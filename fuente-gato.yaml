@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Fuente Simba
-  area: Cocina
+  area: cocina
 
 uart:
   tx_pin: GPIO21

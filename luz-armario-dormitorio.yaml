@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz armario dormitorio
-  area: Dormitorio
+  area: dormitorio
 
 light:
   - platform: cwww

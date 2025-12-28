@@ -7,7 +7,7 @@ packages:
 
 esphome:
   friendly_name: Luz entrada salon
-  area: Salón
+  area: salon
   on_boot: 
     then:
         - light.control:

@@ -9,7 +9,7 @@ packages:
 
 esphome:
   friendly_name: Alimentación lavavajillas
-  area: Cocina
+  area: cocina
   on_boot:
     priority: 600
     then:

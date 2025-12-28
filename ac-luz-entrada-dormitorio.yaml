@@ -7,7 +7,7 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz entrada dormitorio
-  area: Dormitorio
+  area: dormitorio
   on_boot:
     priority: 600
     then:

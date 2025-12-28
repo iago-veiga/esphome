@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz principal cocina
-  area: Cocina
+  area: cocina
 
 light:
   - platform: binary

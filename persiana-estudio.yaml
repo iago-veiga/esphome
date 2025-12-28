@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Persiana estudio
-  area: Estudio
+  area: estudio
 
 cover:
   - platform: current_based
