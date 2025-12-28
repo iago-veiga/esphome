@@ -7,20 +7,6 @@ esp32:
   framework:
     type: esp-idf
     version: recommended
-    sdkconfig_options:
-      CONFIG_FREERTOS_UNICORE: y
-      CONFIG_FREERTOS_HZ: '1000'
-      CONFIG_PM_USE_RTC_TIMER_REF: y
-      CONFIG_XTAL_FREQ_40: y
-      CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ: '80000000'
-      CONFIG_PM_DFS_INIT_AUTO: n
-      CONFIG_FREERTOS_USE_TICKLESS_IDLE: y
-      CONFIG_PM_ENABLE: y
-      CONFIG_PM_SLP_IRAM_OPT: y
-      CONFIG_PM_RTOS_IDLE_OPT: y
-      CONFIG_ESP_WIFI_SLP_IRAM_OPT: y
-      CONFIG_PM_POWER_DOWN_CPU_IN_LIGHT_SLEEP: y
-      CONFIG_PM_PROFILING: y
 
 status_led:
   pin:
@@ -33,7 +19,6 @@ uart:
   baud_rate: 38400
   parity: EVEN
   stop_bits: 1
-  rx_buffer_size: 1024
   id: uart_bus
 
 packages:
@@ -92,7 +77,9 @@ switch:
     interlock: *interlock
     interlock_wait_time: 200ms
   - platform: gpio
-    pin: GPIO0
+    pin: 
+      number: GPIO0
+      ignore_strapping_warning: true
     id: button_1
     inverted: true
     internal: true
