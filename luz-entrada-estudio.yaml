@@ -12,5 +12,5 @@ esphome:
     then:
         - light.control:
             id: ceiling_light
-            brightness: 80%
-            color_temperature: 2700K
+            brightness: 100%
+            color_temperature: 6500K
