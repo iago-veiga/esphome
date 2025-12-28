@@ -1,5 +1,5 @@
 udp:
-    addresses: ["192.168.10.99"]
+    addresses: [!secret syslog_host]
     id: syslog_udp
 
 syslog:

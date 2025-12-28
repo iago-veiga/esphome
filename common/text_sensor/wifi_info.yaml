@@ -2,9 +2,12 @@ platform: wifi_info
 ip_address:
   name: Dirección IP
   icon: mdi:ip
+  entity_category: diagnostic
 ssid:
   name: Red WiFi
   icon: mdi:wifi
+  entity_category: diagnostic
 bssid:
   name: MAC router WiFi
   icon: mdi:router-wireless
+  entity_category: diagnostic

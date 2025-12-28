@@ -1,2 +1,3 @@
 platform: status
 name: Estado
+entity_category: diagnostic
