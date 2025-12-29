@@ -8,15 +8,31 @@ esphome:
   friendly_name: Termo
   area: cocina
 
+# Override local del logger (sin usar UART) para depurar Tuya sin
+# interferir con la comunicación en GPIO1/GPIO3.
+logger:
+  baud_rate: 0
+  initial_level: INFO
+  logs:
+    # Evita spam como "[tuya:156] MCU restarted" (sale a nivel INFO).
+    # Si necesitas depurar datapoints puntualmente, cambia a DEBUG temporalmente.
+    tuya: WARN
+
 uart:
   tx_pin: GPIO1
   rx_pin: GPIO3
   baud_rate: 9600
   id: uart_bus
-  # rx_buffer_size: 256
+  rx_buffer_size: 256
 
 tuya:
   time_id: sntp_time
+  on_datapoint_update:
+    - sensor_datapoint: 101
+      datapoint_type: enum
+      then:
+        - lambda: |-
+            id(termo_dp_101_raw).publish_state(x);
 
 climate:
   - platform: tuya
@@ -35,22 +51,47 @@ climate:
     icon: mdi:water-boiler
 
 sensor:
-  - platform: tuya
-    name: "Termo - Modo Programado"
-    id: termo_modo_programado
-    sensor_datapoint: 4
-  - platform: tuya
+  # DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
+  - platform: template
     name: "Termo - Unknown 101"
-    id: termo_dp_101
-    sensor_datapoint: 101
+    id: termo_dp_101_raw
+    accuracy_decimals: 0
+    update_interval: never
+
+select:
+  # Según tus pruebas:
+  #  - 2 = STD
+  #  - 1 = TIMER
+  #  - 0 = SMART
   - platform: tuya
-    name: "Termo - Unknown 102"
-    id: termo_dp_102
-    sensor_datapoint: 102
+    name: "Termo - Modo"
+    id: termo_mode
+    enum_datapoint: 4
+    optimistic: false
+    options:
+      0: SMART
+      1: TIMER
+      2: STD
+
+number:
+  #  - DP102 = hora de inicio en modo TIMER
+  #  - DP103 = hora de fin en modo TIMER
   - platform: tuya
-    name: "Termo - Unknown 103"
-    id: termo_dp_103
-    sensor_datapoint: 103
+    name: "Termo - Timer inicio (hora)"
+    id: termo_timer_start_hour
+    number_datapoint: 102
+    min_value: 0
+    max_value: 23
+    step: 1
+    entity_category: config
+  - platform: tuya
+    name: "Termo - Timer fin (hora)"
+    id: termo_timer_stop_hour
+    number_datapoint: 103
+    min_value: 0
+    max_value: 23
+    step: 1
+    entity_category: config
 
 binary_sensor:
   - platform: tuya
