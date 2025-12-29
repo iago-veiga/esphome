@@ -25,6 +25,12 @@ uart:
   id: uart_bus
   rx_buffer_size: 256
 
+globals:
+  - id: last_dp101
+    type: int
+    restore_value: no
+    initial_value: "-1"
+
 tuya:
   time_id: sntp_time
   on_datapoint_update:
@@ -32,6 +38,10 @@ tuya:
       datapoint_type: enum
       then:
         - lambda: |-
+            if (id(last_dp101) != (int) x) {
+              id(last_dp101) = (int) x;
+              ESP_LOGW("termo_dp", "DP101 (enum) -> %d", (int) x);
+            }
             id(termo_dp_101_raw).publish_state(x);
 
 climate:
@@ -180,6 +190,14 @@ binary_sensor:
     name: "Unknown 104"
     id: termo_dp_104
     sensor_datapoint: 104
+    on_press:
+      then:
+        - lambda: |-
+            ESP_LOGW("termo_dp", "DP104 -> ON");
+    on_release:
+      then:
+        - lambda: |-
+            ESP_LOGW("termo_dp", "DP104 -> OFF");
 
   - platform: tuya
     name: "Fault Flags"
