@@ -53,10 +53,58 @@ climate:
 sensor:
   # DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
   - platform: template
-    name: "Termo - Unknown 101"
+    name: "Unknown 101"
     id: termo_dp_101_raw
     accuracy_decimals: 0
     update_interval: never
+
+datetime:
+  # UI cómoda en Home Assistant (selector de hora).
+  # Implementación conservadora:
+  # - HA -> termo: set_action escribe DP102/DP103 (solo hora)
+  # - termo -> HA: on_value del DP actualiza el estado del selector
+  # Sin restore_value para evitar escrituras a flash.
+  - platform: template
+    type: time
+    name: "Timer inicio"
+    id: termo_timer_start_time
+    optimistic: true
+    initial_value: "00:00:00"
+    set_action:
+      then:
+        - lambda: |-
+            int h = x.hour;
+            if (h < 0) h = 0;
+            if (h > 23) h = 23;
+
+            // Solo escribimos el DP si realmente cambia.
+            if (!isnan(id(termo_timer_start_hour).state) && (int) roundf(id(termo_timer_start_hour).state) == h) {
+              return;
+            }
+            auto call = id(termo_timer_start_hour).make_call();
+            call.set_value(h);
+            call.perform();
+
+  - platform: template
+    type: time
+    name: "Timer fin"
+    id: termo_timer_stop_time
+    optimistic: true
+    initial_value: "00:00:00"
+    set_action:
+      then:
+        - lambda: |-
+            int h = x.hour;
+            if (h < 0) h = 0;
+            if (h > 23) h = 23;
+
+            // Solo escribimos el DP si realmente cambia.
+            if (!isnan(id(termo_timer_stop_hour).state) && (int) roundf(id(termo_timer_stop_hour).state) == h) {
+              return;
+            }
+            auto call = id(termo_timer_stop_hour).make_call();
+            call.set_value(h);
+            call.perform();
 
 select:
   # Según tus pruebas:
@@ -64,7 +112,7 @@ select:
   #  - 1 = TIMER
   #  - 0 = SMART
   - platform: tuya
-    name: "Termo - Modo"
+    name: "Modo"
     id: termo_mode
     enum_datapoint: 4
     optimistic: false
@@ -77,37 +125,63 @@ number:
   #  - DP102 = hora de inicio en modo TIMER
   #  - DP103 = hora de fin en modo TIMER
   - platform: tuya
-    name: "Termo - Timer inicio (hora)"
+    name: "Timer inicio (hora)"
     id: termo_timer_start_hour
     number_datapoint: 102
+    internal: true
     min_value: 0
     max_value: 23
     step: 1
     entity_category: config
+    on_value:
+      then:
+        - lambda: |-
+            int h = (int) roundf(x);
+            if (h < 0) h = 0;
+            if (h > 23) h = 23;
+
+            auto current = id(termo_timer_start_time).state_as_esptime();
+            if (current.hour == h && current.minute == 0 && current.second == 0) {
+              return;
+            }
+            char buf[9];
+            snprintf(buf, sizeof(buf), "%02d:00:00", h);
+            auto dt_call = id(termo_timer_start_time).make_call();
+            dt_call.set_time(buf);
+            dt_call.perform();
   - platform: tuya
-    name: "Termo - Timer fin (hora)"
+    name: "Timer fin (hora)"
     id: termo_timer_stop_hour
     number_datapoint: 103
+    internal: true
     min_value: 0
     max_value: 23
     step: 1
     entity_category: config
+    on_value:
+      then:
+        - lambda: |-
+            int h = (int) roundf(x);
+            if (h < 0) h = 0;
+            if (h > 23) h = 23;
+
+            auto current = id(termo_timer_stop_time).state_as_esptime();
+            if (current.hour == h && current.minute == 0 && current.second == 0) {
+              return;
+            }
+            char buf[9];
+            snprintf(buf, sizeof(buf), "%02d:00:00", h);
+            auto dt_call = id(termo_timer_stop_time).make_call();
+            dt_call.set_time(buf);
+            dt_call.perform();
 
 binary_sensor:
   - platform: tuya
-    name: "Termo - Unknown 104"
+    name: "Unknown 104"
     id: termo_dp_104
     sensor_datapoint: 104
 
   - platform: tuya
-    name: "Termo - Fault Flags"
+    name: "Fault Flags"
     id: termo_fault_flags
     sensor_datapoint: 9
-
-# interval:
-#   - interval: 10s
-#     then:
-#       - lambda: |-
-#           auto call = id(termo).make_call();
-#           call.set_mode(id(termo).mode);
-#           call.perform();
