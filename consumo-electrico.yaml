@@ -16,7 +16,7 @@ uart:
 
 modbus:
 
-sensor: 
+sensor:
   - platform: pzemac
     id: pzemac_1
     current:

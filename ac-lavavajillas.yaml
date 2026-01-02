@@ -10,7 +10,3 @@ packages:
 esphome:
   friendly_name: Alimentación lavavajillas
   area: cocina
-  on_boot:
-    priority: 600
-    then:
-      - output.turn_on: relay_1
