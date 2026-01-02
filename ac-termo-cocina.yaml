@@ -1,16 +1,10 @@
 substitutions:
   device_name: ac-termo-cocina
-  voltage_divider: "1655.8"
-  current_resistor: "0.001"
-  current_multiply: "1.0"
 
 packages:
-  device_base: !include base_devices/tecking-sp22.yaml
+  device_base: !include base_devices/sonoffs60.yaml
 
 esphome:
   friendly_name: Alimentación termo electrico
   area: cocina
-  on_boot:
-    priority: 600
-    then:
-      - output.turn_on: relay_1
+
