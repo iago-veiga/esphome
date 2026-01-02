@@ -3,6 +3,7 @@ substitutions:
 
 packages:
   device_base: !include base_devices/esp32c3.yaml
+  logger_tuya: !include common/logger_tuya_warn.yaml
 
 esphome:
   friendly_name: Fuente gatos

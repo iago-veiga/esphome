@@ -1,0 +1,6 @@
+# Ajuste opcional para dispositivos Tuya MCU.
+# Reduce el spam del componente `tuya` (p.ej. "MCU restarted") manteniendo el resto del log en INFO.
+# Si necesitas depurar datapoints puntualmente, cambia temporalmente a DEBUG.
+logger:
+  logs:
+    tuya: WARN

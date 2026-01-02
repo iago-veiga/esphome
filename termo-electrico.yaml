@@ -3,20 +3,11 @@ substitutions:
 
 packages:
   device_base: !include base_devices/esp12f.yaml
+  logger_tuya: !include common/logger_tuya_warn.yaml
 
 esphome:
   friendly_name: Termo
   area: cocina
-
-# Override local del logger (sin usar UART) para depurar Tuya sin
-# interferir con la comunicación en GPIO1/GPIO3.
-logger:
-  baud_rate: 0
-  initial_level: INFO
-  logs:
-    # Evita spam como "[tuya:156] MCU restarted" (sale a nivel INFO).
-    # Si necesitas depurar datapoints puntualmente, cambia a DEBUG temporalmente.
-    tuya: WARN
 
 uart:
   tx_pin: GPIO1
@@ -63,10 +54,12 @@ climate:
 sensor:
   # DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
   - platform: template
-    name: "Unknown 101"
+    name: "DP101 raw"
     id: termo_dp_101_raw
     accuracy_decimals: 0
     update_interval: never
+    entity_category: diagnostic
+    disabled_by_default: true
 
 datetime:
   # UI cómoda en Home Assistant (selector de hora).
@@ -187,9 +180,11 @@ number:
 
 binary_sensor:
   - platform: tuya
-    name: "Unknown 104"
+    name: "DP104 raw"
     id: termo_dp_104
     sensor_datapoint: 104
+    entity_category: diagnostic
+    disabled_by_default: true
     on_press:
       then:
         - lambda: |-
@@ -200,6 +195,8 @@ binary_sensor:
             ESP_LOGW("termo_dp", "DP104 -> OFF");
 
   - platform: tuya
-    name: "Fault Flags"
+    name: "DP9 Fault Flags"
     id: termo_fault_flags
     sensor_datapoint: 9
+    entity_category: diagnostic
+    disabled_by_default: true
