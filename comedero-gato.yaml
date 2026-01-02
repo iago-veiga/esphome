@@ -18,7 +18,7 @@ tuya:
   on_datapoint_update:
     - sensor_datapoint: 13
       datapoint_type: bitmask
-      then: 
+      then:
         - lambda: |-
             uint32_t bitmask_value = x;
             if (bitmask_value != 0) {
@@ -45,7 +45,7 @@ tuya:
             }
     - sensor_datapoint: 14
       datapoint_type: int
-      then: 
+      then:
         - script.execute: set_last_feed_date_script
         - lambda: |-
             id(last_feed_portions).publish_state(x);
@@ -74,7 +74,7 @@ button:
   - platform: template
     name: Feed
     id: feed_button
-    on_press: 
+    on_press:
       then:
         - script.execute: feed_script
         - script.execute: set_next_feed_time_script
@@ -97,7 +97,7 @@ datetime:
       - if:
           condition:
             switch.is_on: switch_1
-          then: 
+          then:
             - script.execute: feed_script
       - script.execute: set_next_feed_time_script
 
@@ -155,7 +155,7 @@ sensor:
     sensor_datapoint: 10
   - platform: tuya
     id: feed_state
-    sensor_datapoint: 4    
+    sensor_datapoint: 4
   - platform: template
     name: Porcion ultima comida
     id: last_feed_portions
@@ -206,7 +206,7 @@ script:
             call.perform();
           }
   - id: set_next_feed_time_script
-    then: 
+    then:
       - lambda: |-
           int feeds_per_day = id(feeds_at_day).state;
           time_t seconds_between_feeds = (24 * 60 * 60) / feeds_per_day;
@@ -223,7 +223,7 @@ script:
       - lambda: |-
           // Obtener el tiempo actual como un timestamp
           time_t now = id(sntp_time).now().timestamp;
-          
+
           // Publicar el timestamp directamente en el sensor 'last_feed_date'
           id(last_feed_date_global) = now;
 
@@ -248,3 +248,4 @@ switch:
     id: quick_feed
     switch_datapoint: 2
     internal: True
+
