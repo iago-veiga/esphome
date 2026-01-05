@@ -1,6 +1,19 @@
 ---
 esphome:
   name: ${device_name}
+  on_boot:
+    # Cuando el relé se restaura encendido (restore_mode), no siempre dispara on_turn_on.
+    # Sincronizamos el LED rojo con el estado real del relé al arrancar.
+    priority: -100
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            switch.is_on: relay_1
+          then:
+            - output.turn_on: led_red
+          else:
+            - output.turn_off: led_red
 
 esp8266:
   board: esp01_1m

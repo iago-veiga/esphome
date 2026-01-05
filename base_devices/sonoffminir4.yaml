@@ -38,9 +38,6 @@ output:
   - platform: gpio
     pin: GPIO26
     id: relay_1
-  - platform: gpio
-    pin: GPIO0
-    id: button_1
 
 binary_sensor:
   - platform: gpio
@@ -48,8 +45,15 @@ binary_sensor:
       number: GPIO27
       mode: INPUT_PULLUP
       inverted: false
-    id: switch_1
+    id: s1
     name: switch
     internal: true
     filters:
+      - invert:
       - delayed_on_off: 50ms
+  - platform: gpio
+    pin:
+      number: GPIO00
+      ignore_strapping_warning: true
+    id: button_1
+    internal: true
