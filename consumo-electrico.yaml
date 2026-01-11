@@ -1,6 +1,9 @@
 substitutions:
   device_name: consumo-electrico
 
+# DEPRECADO: este dispositivo era un hardware casero con PZEM.
+# Nuevo reemplazo (Sonoff POWCT): ver `consumo-electrico-powct.yaml`.
+
 packages:
   device_base: !include base_devices/esp12f.yaml
 
