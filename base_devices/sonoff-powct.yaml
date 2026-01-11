@@ -45,15 +45,13 @@ sensor:
   - <<: !include ../common/sensor/wifi_signal.yaml
 
   # Según https://devices.esphome.io/devices/sonoff-powct/
-  # hay que dividir las medidas por PI para obtener valores correctos.
+  # hay que dividir corriente y potencia por PI para obtener valores correctos.
   - platform: cse7761
     uart_id: uart_bus
     update_interval: 2s
     voltage:
       name: Voltaje
       id: v_sensor
-      filters:
-        - lambda: return x / (float) M_PI;
     current_1:
       name: Intensidad
       id: a_sensor
@@ -150,10 +148,8 @@ select:
 output:
   - platform: gpio
     id: status_led_out
-    pin:
-      number: GPIO13
-      inverted: true
-
+    pin: GPIO13
+    inverted: true
 switch:
   - platform: gpio
     name: Relay
