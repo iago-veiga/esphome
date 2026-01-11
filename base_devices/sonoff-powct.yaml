@@ -27,6 +27,7 @@ status_led:
   pin:
     number: GPIO15
     inverted: true
+    ignore_strapping_warning: true
 
 packages:
   api: !include ../common/api.yaml
@@ -52,21 +53,21 @@ sensor:
       name: Voltaje
       id: v_sensor
       filters:
-        - lambda: return x / 3.14159265358979323846;
+        - lambda: return x / (float) M_PI;
     current_1:
       name: Intensidad
       id: a_sensor
       unit_of_measurement: "A"
       accuracy_decimals: 3
       filters:
-        - lambda: return x / 3.14159265358979323846;
+        - lambda: return x / (float) M_PI;
     active_power_1:
       name: Potencia
       id: w_sensor
       unit_of_measurement: "W"
       accuracy_decimals: 1
       filters:
-        - lambda: return x / 3.14159265358979323846;
+        - lambda: return x / (float) M_PI;
 
   - platform: total_daily_energy
     name: Energía diaria
