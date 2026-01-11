@@ -52,21 +52,21 @@ sensor:
       name: Voltaje
       id: v_sensor
       filters:
-        - lambda: return x / PI;
+        - lambda: return x / 3.14159265358979323846;
     current_1:
       name: Intensidad
       id: a_sensor
       unit_of_measurement: "A"
       accuracy_decimals: 3
       filters:
-        - lambda: return x / PI;
+        - lambda: return x / 3.14159265358979323846;
     active_power_1:
       name: Potencia
       id: w_sensor
       unit_of_measurement: "W"
       accuracy_decimals: 1
       filters:
-        - lambda: return x / PI;
+        - lambda: return x / 3.14159265358979323846;
 
   - platform: total_daily_energy
     name: Energía diaria
@@ -124,12 +124,6 @@ output:
       number: GPIO13
       inverted: true
 
-light:
-  - platform: monochromatic
-    id: status_light
-    internal: true
-    output: status_led_out
-
 switch:
   - platform: gpio
     name: Relay
@@ -137,9 +131,9 @@ switch:
     id: relay_1
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
-      - light.turn_on: status_light
+      - output.turn_on: status_led_out
     on_turn_off:
-      - light.turn_off: status_light
+      - output.turn_off: status_led_out
 
 binary_sensor:
   - platform: gpio
@@ -152,9 +146,11 @@ binary_sensor:
     filters:
       - delayed_off: 10ms
     on_click:
-      - max_length: 350ms
+      - min_length: 50ms
+        max_length: 350ms
         then:
           - switch.toggle: relay_1
       - min_length: 3s
+        max_length: 10s
         then:
           - button.press: restart_button
