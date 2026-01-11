@@ -1,0 +1,7 @@
+# Opt-in: subir el nivel de logs del componente Tuya para diagnosticar DPs.
+# Úsalo temporalmente para capturar tráfico y luego vuelve a logger_tuya_warn.yaml.
+
+logger:
+  level: DEBUG
+  logs:
+    tuya: DEBUG
