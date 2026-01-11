@@ -109,6 +109,35 @@ sensor:
 text_sensor:
   - <<: !include ../common/text_sensor/wifi_info.yaml
 
+globals:
+  - id: display_page
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+display:
+  - platform: tm1621
+    id: tm1621_display
+    cs_pin: GPIO17
+    data_pin:
+      number: GPIO05
+      ignore_strapping_warning: true
+    read_pin: GPIO23
+    write_pin: GPIO18
+    update_interval: 1s
+    lambda: |-
+      if (id(display_page)) {
+        it.display_voltage(true);
+        it.display_kwh(false);
+        it.printf(0, "%.1f", id(v_sensor).state);
+        it.printf(1, "%.3f", id(a_sensor).state);
+      } else {
+        it.display_voltage(false);
+        it.display_kwh(true);
+        it.printf(0, "%.2f", id(daily_energy).state);
+        it.printf(1, "%.1f", id(w_sensor).state);
+      }
+
 button:
   - platform: restart
     id: restart_button
@@ -151,6 +180,12 @@ binary_sensor:
         max_length: 350ms
         then:
           - switch.toggle: relay_1
+      - min_length: 360ms
+        max_length: 2900ms
+        then:
+          - lambda: |-
+              id(display_page) = !id(display_page);
+          - component.update: tm1621_display
       - min_length: 3s
         max_length: 10s
         then:
