@@ -8,6 +8,8 @@ packages:
 esphome:
   friendly_name: Comedero gatos
   area: cocina
+  includes:
+    - common/cpp/mealplan_codec.h
   on_boot:
     priority: 600
     then:
@@ -47,6 +49,8 @@ tuya:
               hex += buf;
             }
             id(dp1_meal_plan_raw).publish_state(hex);
+            // Mantén la entidad base64 en sync con lo que reporta el MCU.
+            id(meal_plan_b64).publish_state(mealplan_codec::base64_encode(x));
             ESP_LOGD("pet_feeder", "DP1 meal_plan raw: %s", hex.c_str());
     - sensor_datapoint: 13
       datapoint_type: bitmask
@@ -109,37 +113,12 @@ button:
     on_press:
       then:
         - script.execute: feed_script
-        - script.execute: set_next_feed_time_script
   - platform: template
     name: Alimentación rápida
     id: quick_feed_button
     on_press:
       - lambda: |-
           id(quick_feed).turn_on();
-
-  - platform: template
-    name: "Meal plan: sobrescribir 1 entrada"
-    id: meal_plan_replace_one_button
-    entity_category: config
-    on_press:
-      then:
-        - script.execute: meal_plan_replace_one
-
-  - platform: template
-    name: "Meal plan: añadir entrada"
-    id: meal_plan_append_one_button
-    entity_category: config
-    on_press:
-      then:
-        - script.execute: meal_plan_append_one
-
-  - platform: template
-    name: Aplicar meal plan (DP1)
-    id: apply_meal_plan_button
-    entity_category: config
-    on_press:
-      then:
-        - script.execute: send_meal_plan_dp1
 
   - platform: template
     name: Borrar meal plan (DP1)
@@ -150,34 +129,23 @@ button:
         - lambda: |-
             // Intentamos borrar enviando payload vacío.
             // Si el MCU no lo acepta, puedes probar manualmente con "00".
-            id(meal_plan_hex).publish_state("");
-        - script.execute: send_meal_plan_dp1
+            id(meal_plan_b64).publish_state("");
+        - script.execute: send_meal_plan_dp1_b64
 
 text:
   - platform: template
-    name: Meal plan HEX (DP1)
-    id: meal_plan_hex
+    name: Meal plan (base64)
+    id: meal_plan_b64
     entity_category: config
     optimistic: true
     restore_value: true
-    initial_value: "00"
+    initial_value: ""
     mode: text
-
-datetime:
-  - platform: template
-    id: next_feed_time
-    name: Hora siguiente comida
-    type: time
-    initial_value: "10:00:00"
-    optimistic: True
-    restore_value: True
-    on_time:
-      - if:
-          condition:
-            switch.is_on: switch_1
-          then:
-            - script.execute: feed_script
-      - script.execute: set_next_feed_time_script
+    set_action:
+      - lambda: |-
+          // Persistimos el nuevo valor para que el card vea el cambio inmediatamente.
+          id(meal_plan_b64).publish_state(x);
+      - script.execute: send_meal_plan_dp1_b64
 
 globals:
   - id: last_feed_date_global
@@ -209,64 +177,6 @@ number:
     max_value: 12
     step: 1
     restore_value: True
-  - platform: template
-    name: Comidas al dia
-    id: feeds_at_day
-    optimistic: True
-    mode: BOX
-    min_value: 1
-    max_value: 5
-    step: 1
-    restore_value: True
-
-  - platform: template
-    id: meal_plan_week_mask
-    name: Meal plan week mask (0..127)
-    entity_category: config
-    optimistic: True
-    restore_value: True
-    mode: BOX
-    min_value: 0
-    max_value: 127
-    step: 1
-    initial_value: 1
-
-  - platform: template
-    id: meal_plan_hour
-    name: Meal plan hora
-    entity_category: config
-    optimistic: True
-    restore_value: True
-    mode: BOX
-    min_value: 0
-    max_value: 23
-    step: 1
-    initial_value: 18
-
-  - platform: template
-    id: meal_plan_minute
-    name: Meal plan minuto
-    entity_category: config
-    optimistic: True
-    restore_value: True
-    mode: BOX
-    min_value: 0
-    max_value: 59
-    step: 1
-    initial_value: 50
-
-  - platform: template
-    id: meal_plan_amount
-    name: Meal plan porciones
-    entity_category: config
-    optimistic: True
-    restore_value: True
-    mode: BOX
-    min_value: 1
-    max_value: 12
-    step: 1
-    initial_value: 1
-
   - platform: tuya
     name: feed
     id: feed
@@ -282,25 +192,28 @@ sensor:
   - platform: tuya
     name: Batería auxiliar
     device_class: battery
+    unit_of_measurement: '%'
+    accuracy_decimals: 0
     id: battery
     sensor_datapoint: 10
+
   - platform: tuya
     id: feed_state
     sensor_datapoint: 4
     name: DP4 raw
     entity_category: diagnostic
     disabled_by_default: true
+
   - platform: template
     name: Porcion ultima comida
     id: last_feed_portions
     icon: mdi:counter
+
   - platform: template
     name: Ultima comida
     id: last_feed_date
     device_class: timestamp
     icon: mdi:calendar-clock
-    entity_category: diagnostic
-    disabled_by_default: false
 
 select:
   - platform: template
@@ -342,67 +255,20 @@ script:
           auto call = id(feed).make_call();
           call.set_value(p);
           call.perform();
-  - id: set_next_feed_time_script
-    then:
-      - lambda: |-
-          int feeds_per_day = id(feeds_at_day).state;
-          time_t seconds_between_feeds = (24 * 60 * 60) / feeds_per_day;
-          time_t now = id(sntp_time).now().timestamp;
-          time_t future_feed_time = now + seconds_between_feeds;
-          struct tm * timeinfo = localtime(&future_feed_time);
-          char buffer[8];
-          strftime(buffer, sizeof(buffer), "%H:%M:%S", timeinfo);
-          auto call = id(next_feed_time).make_call();
-          call.set_time(buffer);
-          call.perform();
 
-  - id: send_meal_plan_dp1
+  - id: send_meal_plan_dp1_b64
     mode: queued
     then:
       - lambda: |-
-          // Enviamos DP1 (raw) por UART usando el protocolo Tuya MCU.
-          // Esto permite gestionar meal_plan aunque no tengas la app.
-          // Frame: 55 AA 00 06 len_hi len_lo dpId type dataLen_hi dataLen_lo data... checksum
-
-          std::string s = id(meal_plan_hex).state;
-          // Normaliza: quitar espacios, puntos y prefijos 0x.
-          std::string hex;
-          hex.reserve(s.size());
-          for (size_t i = 0; i < s.size(); i++) {
-            char c = s[i];
-            if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '.') continue;
-            if (c == 'x' || c == 'X') continue;
-            if (c == '0' && i + 1 < s.size() && (s[i + 1] == 'x' || s[i + 1] == 'X')) continue;
-            hex.push_back(c);
-          }
-
-          // Permitir valores tipo "0" como clear.
-          if (hex == "0") hex = "";
-
-          if (!hex.empty() && (hex.size() % 2) != 0) {
-            ESP_LOGW("pet_feeder", "Meal plan HEX inválido (número impar de nibbles): '%s'", s.c_str());
-            return;
-          }
-
-          auto nibble = [](char c) -> int {
-            if (c >= '0' && c <= '9') return c - '0';
-            if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
-            if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
-            return -1;
-          };
+          // Integra directamente con mealplan-card: el card escribe un string base64
+          // al entity (típicamente dominio "text"), y aquí lo convertimos a bytes.
+          const std::string s = id(meal_plan_b64).state;
 
           std::vector<uint8_t> payload;
-          payload.reserve(hex.size() / 2);
-          if (!hex.empty()) {
-            for (size_t i = 0; i < hex.size(); i += 2) {
-              int hi = nibble(hex[i]);
-              int lo = nibble(hex[i + 1]);
-              if (hi < 0 || lo < 0) {
-                ESP_LOGW("pet_feeder", "Meal plan HEX inválido: '%s'", s.c_str());
-                return;
-              }
-              payload.push_back((uint8_t) ((hi << 4) | lo));
-            }
+          std::string err;
+          if (!mealplan_codec::base64_decode(s, &payload, &err)) {
+            ESP_LOGW("pet_feeder", "Meal plan base64 inválido: %s", err.c_str());
+            return;
           }
 
           // Construir frame Tuya MCU: SET_DP (0x06)
@@ -429,76 +295,8 @@ script:
           for (uint8_t b : frame) checksum += b;
           frame.push_back(checksum);
 
-          ESP_LOGI("pet_feeder", "Enviando DP1 meal_plan raw (%u bytes)", (unsigned) payload.size());
+          ESP_LOGI("pet_feeder", "Enviando DP1 meal_plan raw desde base64 (%u bytes)", (unsigned) payload.size());
           id(uart_bus).write_array(frame.data(), frame.size());
-
-  - id: meal_plan_replace_one
-    mode: queued
-    then:
-      - lambda: |-
-          // Construye 1 entrada (5 bytes) y reemplaza DP1.
-          uint8_t week = (uint8_t) ((int) roundf(id(meal_plan_week_mask).state) & 0x7F);
-          uint8_t hour = (uint8_t) ((int) roundf(id(meal_plan_hour).state) & 0xFF);
-          uint8_t minute = (uint8_t) ((int) roundf(id(meal_plan_minute).state) & 0xFF);
-          uint8_t amount = (uint8_t) ((int) roundf(id(meal_plan_amount).state) & 0xFF);
-          if (amount < 1) amount = 1;
-          if (amount > 12) amount = 12;
-          uint8_t enabled = id(meal_plan_entry_enabled).state ? 0x01 : 0x00;
-
-          char buf[11];
-          // week hour minute amount enabled
-          snprintf(buf, sizeof(buf), "%02X%02X%02X%02X%02X", week, hour, minute, amount, enabled);
-          id(meal_plan_hex).publish_state(buf);
-          ESP_LOGI("pet_feeder", "Meal plan construido (1 entrada): %s", buf);
-      - script.execute: send_meal_plan_dp1
-
-  - id: meal_plan_append_one
-    mode: queued
-    then:
-      - lambda: |-
-          // Añade 1 entrada (5 bytes) al final de DP1.
-          // Límite típico: 10 entradas => 50 bytes => 100 nibbles HEX.
-          std::string s = id(meal_plan_hex).state;
-          std::string hex;
-          hex.reserve(s.size());
-          for (size_t i = 0; i < s.size(); i++) {
-            char c = s[i];
-            if (c == ' ' || c == '\n' || c == '\r' || c == '\t' || c == '.') continue;
-            if (c == 'x' || c == 'X') continue;
-            if (c == '0' && i + 1 < s.size() && (s[i + 1] == 'x' || s[i + 1] == 'X')) continue;
-            hex.push_back(c);
-          }
-          if (hex == "0") hex = "";
-
-          if (!hex.empty() && (hex.size() % 2) != 0) {
-            ESP_LOGW("pet_feeder", "Meal plan HEX actual inválido (nibbles impares): '%s'", s.c_str());
-            return;
-          }
-          // Si no es múltiplo de 5 bytes, no sabemos dónde insertar.
-          if (!hex.empty() && ((hex.size() / 2) % 5) != 0) {
-            ESP_LOGW("pet_feeder", "Meal plan HEX actual no es múltiplo de 5 bytes: '%s'", s.c_str());
-            return;
-          }
-          const size_t current_entries = hex.empty() ? 0 : ((hex.size() / 2) / 5);
-          if (current_entries >= 10) {
-            ESP_LOGW("pet_feeder", "Meal plan ya tiene %u entradas (máximo 10)", (unsigned) current_entries);
-            return;
-          }
-
-          uint8_t week = (uint8_t) ((int) roundf(id(meal_plan_week_mask).state) & 0x7F);
-          uint8_t hour = (uint8_t) ((int) roundf(id(meal_plan_hour).state) & 0xFF);
-          uint8_t minute = (uint8_t) ((int) roundf(id(meal_plan_minute).state) & 0xFF);
-          uint8_t amount = (uint8_t) ((int) roundf(id(meal_plan_amount).state) & 0xFF);
-          if (amount < 1) amount = 1;
-          if (amount > 12) amount = 12;
-          uint8_t enabled = id(meal_plan_entry_enabled).state ? 0x01 : 0x00;
-
-          char entry[11];
-          snprintf(entry, sizeof(entry), "%02X%02X%02X%02X%02X", week, hour, minute, amount, enabled);
-          hex += entry;
-          id(meal_plan_hex).publish_state(hex.c_str());
-          ESP_LOGI("pet_feeder", "Meal plan añadido (entrada %u): %s", (unsigned) (current_entries + 1), entry);
-      - script.execute: send_meal_plan_dp1
 text_sensor:
   - platform: template
     id: dp1_meal_plan_raw
@@ -517,13 +315,6 @@ text_sensor:
     name: Estado
 
 switch:
-  - platform: template
-    id: meal_plan_entry_enabled
-    name: Meal plan entrada habilitada
-    entity_category: config
-    optimistic: True
-    restore_mode: RESTORE_DEFAULT_ON
-
   - platform: template
     id: switch_1
     name: Comedero
