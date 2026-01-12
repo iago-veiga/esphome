@@ -1,0 +1,188 @@
+---
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+    version: recommended
+
+# POWCT (Sonoff POW Ring) pinout:
+# - Relay: GPIO21
+# - CSE7761 UART: TX=GPIO26, RX=GPIO25 (38400 8E1)
+# - Button: GPIO0 (active-low)
+# - WiFi status LED: GPIO15 (active-low)
+# - Status LED: GPIO13 (active-low)
+
+uart:
+  tx_pin: GPIO26
+  rx_pin: GPIO25
+  baud_rate: 38400
+  parity: EVEN
+  stop_bits: 1
+  id: uart_bus
+
+status_led:
+  pin:
+    number: GPIO15
+    inverted: true
+    ignore_strapping_warning: true
+
+packages:
+  api: !include ../common/api.yaml
+  wifi: !include ../common/wifi.yaml
+  ota: !include ../common/ota.yaml
+  logger: !include ../common/logger.yaml
+  web_server: !include ../common/web_server.yaml
+  captive_portal: !include ../common/captive_portal.yaml
+  syslog: !include ../common/syslog.yaml
+
+time:
+  - <<: !include ../common/time/sntp.yaml
+
+sensor:
+  - <<: !include ../common/sensor/wifi_signal.yaml
+
+  # Según https://devices.esphome.io/devices/sonoff-powct/
+  # hay que dividir corriente y potencia por PI para obtener valores correctos.
+  - platform: cse7761
+    uart_id: uart_bus
+    update_interval: 2s
+    voltage:
+      name: Voltaje
+      id: v_sensor
+    current_1:
+      name: Intensidad
+      id: a_sensor
+      unit_of_measurement: "A"
+      accuracy_decimals: 3
+      filters:
+        - lambda: return x / (float) M_PI;
+    active_power_1:
+      name: Potencia
+      id: w_sensor
+      unit_of_measurement: "W"
+      accuracy_decimals: 1
+      filters:
+        - lambda: return x / (float) M_PI;
+
+  - platform: total_daily_energy
+    name: Energía diaria
+    power_id: w_sensor
+    id: daily_energy
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: integration
+    name: Energía total
+    sensor: w_sensor
+    time_unit: h
+    unit_of_measurement: "kWh"
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
+
+  - platform: template
+    name: Factor potencia
+    id: power_factor
+    device_class: power_factor
+    accuracy_decimals: 2
+    icon: mdi:angle-acute
+    lambda: |-
+      const float v = id(v_sensor).state;
+      const float a = id(a_sensor).state;
+      const float w = id(w_sensor).state;
+      if (isnan(v) || isnan(a) || isnan(w) || v <= 1e-3f || a <= 1e-3f) {
+        return NAN;
+      }
+      return (w / (v * a));
+
+text_sensor:
+  - <<: !include ../common/text_sensor/wifi_info.yaml
+
+globals:
+  - id: display_page
+    type: bool
+    restore_value: no
+    initial_value: 'true'
+
+display:
+  - platform: tm1621
+    id: tm1621_display
+    cs_pin: GPIO17
+    data_pin:
+      number: GPIO05
+      ignore_strapping_warning: true
+    read_pin: GPIO23
+    write_pin: GPIO18
+    update_interval: 1s
+    lambda: |-
+      if (id(display_page)) {
+        it.display_voltage(true);
+        it.display_kwh(false);
+        it.printf(0, "%.1f", id(v_sensor).state);
+        it.printf(1, "%.3f", id(a_sensor).state);
+      } else {
+        it.display_voltage(false);
+        it.display_kwh(true);
+        it.printf(0, "%.2f", id(daily_energy).state);
+        it.printf(1, "%.1f", id(w_sensor).state);
+      }
+
+button:
+  - platform: restart
+    id: restart_button
+    name: Reiniciar
+    entity_category: config
+
+select:
+  - <<: !include ../common/select/select_logger.yaml
+
+output:
+  - platform: gpio
+    id: status_led_out
+    pin: GPIO13
+    inverted: true
+switch:
+  - platform: gpio
+    name: Relay
+    pin: GPIO21
+    id: relay_1
+    restore_mode: RESTORE_DEFAULT_OFF
+    on_turn_on:
+      - output.turn_on: status_led_out
+    on_turn_off:
+      - output.turn_off: status_led_out
+
+binary_sensor:
+  - platform: gpio
+    id: button_1
+    internal: true
+    pin:
+      number: GPIO00
+      inverted: true
+      ignore_strapping_warning: true
+    filters:
+      - delayed_off: 10ms
+    on_click:
+      - min_length: 50ms
+        max_length: 350ms
+        then:
+          - switch.toggle: relay_1
+      - min_length: 360ms
+        max_length: 2900ms
+        then:
+          - lambda: |-
+              id(display_page) = !id(display_page);
+          - component.update: tm1621_display
+      - min_length: 3s
+        max_length: 10s
+        then:
+          - button.press: restart_button
