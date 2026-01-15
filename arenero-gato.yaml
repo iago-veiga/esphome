@@ -3,6 +3,7 @@ substitutions:
 
 packages:
   device_base: !include base_devices/esp12f.yaml
+  logger_tuya_debug: !include common/logger_tuya_debug.yaml
 
 esphome:
   friendly_name: Arenero gatos
@@ -16,8 +17,65 @@ uart:
 
 tuya:
   time_id: sntp_time
+  on_datapoint_update:
+    # Captura todos los DPs para análisis
+    - sensor_datapoint: 1
+      then:
+        - logger.log:
+            format: "DP1 (unknown type): %d"
+            args: ['x']
+    - sensor_datapoint: 2
+      then:
+        - logger.log:
+            format: "DP2 (unknown type): %d"
+            args: ['x']
+    - sensor_datapoint: 9
+      datapoint_type: enum
+      then:
+        - logger.log:
+            format: "DP9 (enum - posible estado): %d"
+            args: ['x']
+    - sensor_datapoint: 10
+      datapoint_type: enum
+      then:
+        - logger.log:
+            format: "DP10 (enum - posible fault): %d"
+            args: ['x']
+    - sensor_datapoint: 107
+      then:
+        - logger.log:
+            format: "DP107 (unknown): %d"
+            args: ['x']
+    - sensor_datapoint: 108
+      then:
+        - logger.log:
+            format: "DP108 (unknown): %d"
+            args: ['x']
+    - sensor_datapoint: 109
+      then:
+        - logger.log:
+            format: "DP109 (unknown): %d"
+            args: ['x']
+    - sensor_datapoint: 110
+      then:
+        - logger.log:
+            format: "DP110 (unknown): %d"
+            args: ['x']
+    - sensor_datapoint: 112
+      then:
+        - logger.log:
+            format: "DP112 (unknown): %d"
+            args: ['x']
+    - sensor_datapoint: 113
+      then:
+        - logger.log:
+            format: "DP113 (unknown): %d"
+            args: ['x']
 
 
+# ========================================
+# CONTROLES DE LIMPIEZA
+# ========================================
 switch:
   - platform: tuya
     name: Limpiar
@@ -32,41 +90,10 @@ switch:
     switch_datapoint: 4
 
   - platform: tuya
-    name: Deodorizador
-    id: deodorization
-    icon: mdi:leaf
-    switch_datapoint: 17
-
-  - platform: tuya
-    name: Bloqueo infantil
-    id: child_lock
-    icon: mdi:lock
-    switch_datapoint: 103
-
-  - platform: tuya
-    name: Infrarrojo
-    id: infrared
-    icon: mdi:motion-sensor
-    switch_datapoint: 104
-
-  - platform: tuya
-    name: Luz panel
-    id: panel_light
-    icon: mdi:lightbulb
-    inverted: true
-    switch_datapoint: 106
-
-  - platform: tuya
     name: Cambiar arena
     id: replace_litter
     icon: mdi:autorenew
     switch_datapoint: 111
-
-  - platform: tuya
-    name: Inicilizar arenero
-    id: initialize_litter_box
-    icon: mdi:restart
-    switch_datapoint: 115
 
   - platform: tuya
     name: Cambiar bolsa
@@ -74,17 +101,63 @@ switch:
     icon: mdi:delete-empty
     switch_datapoint: 117
 
+# ========================================
+# DEODORIZACIÓN
+# ========================================
+  - platform: tuya
+    name: Deodorizador
+    id: deodorization
+    icon: mdi:leaf
+    switch_datapoint: 17
+
+# ========================================
+# CONFIGURACIÓN Y MANTENIMIENTO
+# ========================================
+  - platform: tuya
+    name: Bloqueo infantil
+    id: child_lock
+    icon: mdi:lock
+    entity_category: config
+    switch_datapoint: 103
+
+  - platform: tuya
+    name: Infrarrojo
+    id: infrared
+    icon: mdi:motion-sensor
+    entity_category: config
+    switch_datapoint: 104
+
+  - platform: tuya
+    name: Luz panel
+    id: panel_light
+    icon: mdi:lightbulb
+    inverted: true
+    entity_category: config
+    switch_datapoint: 106
+
+  - platform: tuya
+    name: Inicilizar arenero
+    id: initialize_litter_box
+    icon: mdi:restart
+    entity_category: config
+    switch_datapoint: 115
+
   - platform: tuya
     name: Calibrar peso
     id: calibrate_weight
     icon: mdi:scale-balance
+    entity_category: config
     switch_datapoint: 118
 
+# ========================================
+# TEMPORIZADORES Y CONFIGURACIÓN
+# ========================================
 number:
   - platform: tuya
     name: Tiempo para comenzar la limpieza
     id: delay_clean_time
     icon: mdi:clock-start
+    entity_category: config
     number_datapoint: 5
     min_value: 0
     max_value: 60
@@ -98,6 +171,7 @@ number:
     min_value: 0
     max_value: 120
     icon: mdi:timelapse
+    entity_category: config
     step: 1
     unit_of_measurement: 'min'
 
@@ -107,9 +181,12 @@ number:
     number_datapoint: 114
     min_value: 0
     max_value: 15
+    entity_category: config
     step: 1
 
-
+# ========================================
+# SENSORES DE USO Y ACTIVIDAD
+# ========================================
 sensor:
   - platform: tuya
     name: Peso gato
@@ -118,7 +195,6 @@ sensor:
     device_class: weight
     id: cat_weight
     sensor_datapoint: 6
-    # internal: true
     on_value:
       then:
         - lambda: |-
@@ -126,6 +202,7 @@ sensor:
               return id(weight_cat1).publish_state(x);}
             else if (id(cat_weight).state >= 3500 && id(cat_weight).state <= 5000) {
               return id(weight_cat2).publish_state(x);}
+
   - platform: tuya
     name: Excreciones del dia
     id: excretion_times_day
@@ -143,6 +220,9 @@ sensor:
     id: excretion_time
     sensor_datapoint: 8
 
+# ========================================
+# SENSORES AMBIENTALES
+# ========================================
   - platform: tuya
     name: Temperatura
     id: temperature
@@ -150,6 +230,7 @@ sensor:
     icon: mdi:thermometer
     device_class: temperature
     state_class: measurement
+    entity_category: diagnostic
     sensor_datapoint: 101
 
   - platform: tuya
@@ -159,8 +240,12 @@ sensor:
     icon: mdi:water-percent
     device_class: humidity
     state_class: measurement
+    entity_category: diagnostic
     sensor_datapoint: 102
 
+# ========================================
+# PESO EN TIEMPO REAL
+# ========================================
   - platform: tuya
     name: Peso en tiempo real
     unit_of_measurement: 'g'
@@ -169,6 +254,9 @@ sensor:
     id: real_time_weight
     sensor_datapoint: 116
 
+# ========================================
+# SENSORES POR GATO (TEMPLATE)
+# ========================================
   - platform: template
     name: Peso Simba
     id: weight_cat1
@@ -182,3 +270,28 @@ sensor:
     unit_of_measurement: 'g'
     device_class: weight
     icon: mdi:weight-kilogram
+
+# ========================================
+# SENSORES DE ESTADO Y DIAGNÓSTICO
+# ========================================
+text_sensor:
+  - platform: tuya
+    name: Estado DP9
+    id: dp9_state
+    sensor_datapoint: 9
+    entity_category: diagnostic
+    disabled_by_default: true
+
+  - platform: tuya
+    name: Fault DP10
+    id: dp10_fault
+    sensor_datapoint: 10
+    entity_category: diagnostic
+    disabled_by_default: true
+
+binary_sensor:
+  - platform: template
+    name: Bolsa llena
+    id: bag_full
+    device_class: problem
+    icon: mdi:delete-alert
