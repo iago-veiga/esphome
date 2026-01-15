@@ -1,11 +1,8 @@
 substitutions:
   device_name: ac-lavavajillas
-  voltage_divider: "1820.95"
-  current_resistor: "0.001"
-  current_multiply: "1.0"
 
 packages:
-  device_base: !include base_devices/tecking-sp22.yaml
+  device_base: !include base_devices/sonoffs60.yaml
 
 esphome:
   friendly_name: Alimentación lavavajillas
