@@ -64,6 +64,17 @@ tuya:
       then:
         - lambda: |-
             ESP_LOGI("arenero", "DP21 (bitmask - flags sistema): 0x%08X", x);
+            // Bit 6 (0x000040) = Limpieza automática (gato)
+            // Bit 8 (0x000100) = Limpieza manual (botón)
+            id(cleaning_active).publish_state((x & 0x000140) != 0);
+            // Bit 10 (0x000400) = Cambiando arena
+            id(replacing_litter).publish_state((x & 0x000400) != 0);
+            // Bit 12 (0x001000) = Desodorizando
+            id(deodorizing_active).publish_state((x & 0x001000) != 0);
+            // Bit 18 (0x040000) = Cambiando bolsa
+            id(replacing_bag).publish_state((x & 0x040000) != 0);
+            // Bit 20 (0x100000) = Calibrando peso/nivelando
+            id(calibrating).publish_state((x & 0x100000) != 0);
     
     - sensor_datapoint: 22
       datapoint_type: bitmask
@@ -334,6 +345,46 @@ text_sensor:
     disabled_by_default: true
 
 binary_sensor:
+  # Estado operacional
+  - platform: template
+    name: Limpiando
+    id: cleaning_active
+    device_class: running
+    icon: mdi:broom
+
+  - platform: template
+    name: Desodorizando
+    id: deodorizing_active
+    device_class: running
+    icon: mdi:spray
+
+  - platform: template
+    name: Cambiando arena
+    id: replacing_litter
+    device_class: running
+    icon: mdi:autorenew
+
+  - platform: template
+    name: Cambiando bolsa
+    id: replacing_bag
+    device_class: running
+    icon: mdi:delete-empty
+
+  - platform: template
+    name: Calibrando
+    id: calibrating
+    device_class: running
+    icon: mdi:scale-balance
+
+  - platform: template
+    name: Gato dentro
+    id: cat_present
+    device_class: occupancy
+    icon: mdi:cat
+    lambda: |-
+      return id(real_time_weight).state > 500;
+
+  # Diagnóstico
   - platform: template
     name: Bolsa llena
     id: bag_full
