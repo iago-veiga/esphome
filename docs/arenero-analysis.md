@@ -5,21 +5,22 @@
 ### DPs Mapeados (Confirmados)
 
 #### Controles Principales
-- **DP3**: `start` - Botón limpiar
+- **DP3**: `start` - Botón limpiar (manual)
 - **DP4**: `auto_clean` - Limpieza automática ON/OFF
 - **DP17**: `deodorization` - Deodorización ON/OFF
-- **DP111**: `replace_litter` - Cambiar arena
-- **DP117**: `replace_bag` - Cambiar bolsa
+- **DP111**: `replace_litter` - Cambiar arena (mantener REPLACE 2s)
+- **DP117**: `replace_bag` - Cambiar bolsa (mantener CLEAN 2s)
 
 #### Configuración
 - **DP5**: `delay_clean_time` - Tiempo para comenzar limpieza (0-60 min)
-- **DP103**: `child_lock` - Bloqueo infantil
+- **DP103**: `child_lock` - Bloqueo infantil (AUTO + REMOVE ODOR 3s)
 - **DP104**: `infrared` - Sensor infrarrojo ON/OFF
 - **DP105**: `cleaning_interval` - Intervalo entre limpiezas (0-120 min)
 - **DP106**: `panel_light` - Luz del panel (invertido)
+- **DP113**: `mode` - Modo operacional (0=normal)
 - **DP114**: `full_bag_threshold` - Umbral bolsa llena (0-15)
-- **DP115**: `initialize_litter_box` - Inicializar arenero
-- **DP118**: `calibrate_weight` - Calibrar peso
+- **DP115**: `initialize_litter_box` - Inicializar/calibrar arenero (boot)
+- **DP118**: `calibrate_weight` - Calibrar peso/nivelar (mantener REMOVE ODOR 2s)
 
 #### Sensores de Uso
 - **DP6**: `cat_weight` - Peso del gato (g)
@@ -33,71 +34,63 @@
 #### Otros Sensores
 - **DP116**: `real_time_weight` - Peso en tiempo real (g)
 
+#### ✅ DP21: Bitmask de Estados (COMPLETAMENTE MAPEADO)
+
+| Bit | Hex | Estado | Trigger |
+|-----|-----|--------|---------|
+| 6 | 0x000040 | Limpieza automática (gato) | Auto-clean después de gato |
+| 8 | 0x000100 | Limpieza manual | Botón CLEAN |
+| 10 | 0x000400 | Cambiando arena | Mantener REPLACE 2s |
+| 12 | 0x001000 | Desodorización activa | DP17 ON |
+| 13 | 0x002000 | Post-desodorización | DP17 OFF (finalizado) |
+| 18 | 0x040000 | Cambiando bolsa | Mantener CLEAN 2s (DP117 ON) |
+| 20 | 0x100000 | Calibrando/Nivelando | DP118 ON |
+| 21 | 0x200000 | Post-calibración | DP118 OFF (finalizado) |
+
 ### DPs Pendientes de Análisis
 
-#### ✅ NUEVOS DPs Descubiertos en el Boot
-- **DP21**: bitmask (valor: 0) - ¿Estados/banderas del sistema?
-- **DP22**: bitmask (valor: 0) - ¿Configuración/flags?
-- **DP24**: enum (valor: 255) - ¿Estado especial?
-- **DP109**: int (valor: 10) - ¿Temporizador o configuración?
-- **DP110**: int (valor: 3) - ¿Contador o ajuste?
-- **DP112**: switch (OFF) - ¿Función no identificada?
-- **DP113**: enum (valor: 0) - ¿Estado/modo?
-- **DP119**: switch (OFF) - ¿Nueva función?
+#### DPs Descubiertos Pero No Activados
+- **DP1, DP2**: RAW - No aparecen en logs (probablemente horarios/schedules)
+- **DP9**: enum - No aparece (posiblemente estado general)
+- **DP10**: enum - No aparece (posiblemente faults/errores)
+- **DP22**: bitmask - No identificado (¿flags de configuración?)
+- **DP24**: enum (valor 255 al boot) - No cambia
+- **DP109**: int (valor: 10) - No identificado
+- **DP110**: int (valor: 3) - No identificado
+- **DP112**: bool - No identificado
+- **DP119**: bool - No identificado
 
-#### DPs Sin Mapear (requieren captura con debug)
-- **DP1, DP2**: No aparecen en boot - probablemente RAW/STRING (horarios)
-- **DP9**: No aparece - posiblemente estado general (enum)
-- **DP10**: No aparece - posiblemente faults/errores (enum)
+### Binary Sensors Implementados
+
+✅ **Estado Operacional** (basados en DP21):
+- `Limpiando`: bits 6+8 de DP21
+- `Desodorizando`: bit 12 de DP21
+- `Cambiando arena`: bit 10 de DP21
+- `Cambiando bolsa`: bit 18 de DP21
+- `Calibrando`: bit 20 de DP21
+- `Gato dentro`: peso tiempo real > 500g
+
+✅ **Diagnóstico**:
+- `Bolsa llena`: por implementar lógica DP114 threshold
 
 ### Funcionalidades del Manual No Implementadas
 
 #### 1. Horarios Programados (Clean Timing)
 **Funcionalidad**: Configurar hasta 5 horarios diarios para limpieza automática
-- Probablemente DP no identificado o múltiples DPs
-- Similar a DP1 del comedero (formato complejo RAW)
-- **Acción**: Capturar tráfico al configurar horarios en app
+- Probablemente DP1 o DP2 (formato RAW)
+- Similar a DP1 del comedero
+- **Estado**: Sin app, no podemos configurar para capturar tráfico
 
 #### 2. Horarios de Deodorización (Deodo Timing)
 **Funcionalidad**: Programar cuándo activar deodorización
-- Posiblemente otro DP tipo RAW/STRING
-- **Acción**: Capturar tráfico al configurar en app
+- Posiblemente DP1 o DP2
+- **Estado**: Sin app, no podemos configurar
 
 #### 3. Modo No Molestar (Do Not Disturb Timing)
 **Funcionalidad**: Horario en el que no se ejecutan operaciones
 - Configuración de rango horario (inicio-fin)
-- **Acción**: Buscar DP relacionado con DND/Sleep mode
-
-#### 4. Calibración Superficie Arena (Sand Surface Calibration)
-**Funcionalidad**: Ajuste 0-6 para tipo de arena
-- Probablemente un number DP no descubierto (rango 0-6)
-- **Acción**: Verificar si es DP112 o similar
-
-#### 5. Estado de Limpieza Actual
-**Funcionalidad**: Indicador visual del progreso/estado
-- DP9 parece ser el candidato (enum)
-- Estados posibles: "idle", "cleaning", "homing", "paused", "error"
-
-#### 6. Códigos de Error/Fault
-**Funcionalidad**: Diagnóstico de problemas
-- DP10 parece ser el candidato
-- **Acción**: Provocar errores controlados para mapear códigos
-
-### Mejoras de UX Propuestas
-
-#### 1. Binary Sensors
-- **Limpiando**: Estado basado en DP9
-- **Bolsa llena**: Basado en DP116 vs DP114 threshold
-- **Gato dentro**: Basado en cambios en peso en tiempo real
-- **Error/Fault**: Basado en DP10
-
-#### 2. Automations Helper
-- **Notificación bolsa llena**: Cuando threshold alcanzado
-- **Alerta gato atrapado**: Si peso detectado >5min sin cambio durante limpieza
-- **Recordatorio cambio arena**: Cada N limpiezas
-
-#### 3. Dashboard Cards
-- **Actividad diaria**: Gráfico excreciones por día
+- Posiblemente parte de DP1/DP2
+- **Estado**: Sin app, no podemos configurar
 - **Peso histórico**: Tracking peso por gato
 - **Estado mantenimiento**: Última limpieza, última bolsa, días desde última arena
 
