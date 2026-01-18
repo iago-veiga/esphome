@@ -4,4 +4,4 @@
 /.esphome/
 /base_devices/.esphome/
 /secrets.yaml
-/archive/
+/archive/docs/

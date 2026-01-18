@@ -9,6 +9,20 @@ esphome:
   friendly_name: Arenero gatos
   area: bano_pasillo
 
+# ========================================
+# VARIABLES GLOBALES
+# ========================================
+globals:
+  - id: uses_cat1_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  
+  - id: uses_cat2_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+
 
 uart:
   rx_pin: GPIO3
@@ -253,15 +267,24 @@ sensor:
     on_value:
       then:
         - lambda: |-
-            if (id(cat_weight).state >= 5001 && id(cat_weight).state <= 8000) {
-              return id(weight_cat1).publish_state(x);}
-            else if (id(cat_weight).state >= 3500 && id(cat_weight).state <= 5000) {
-              return id(weight_cat2).publish_state(x);}
+            // Descartar pesos < 3500g (gato con patas fuera)
+            if (x >= 4800) {
+              // Simba: >= 4800g
+              id(weight_cat1).publish_state(x);
+              id(uses_cat1_counter) += 1;
+              id(uses_cat1_today).publish_state(id(uses_cat1_counter));
+            } else if (x >= 3500 && x < 4800) {
+              // Fada: 3500-4799g
+              id(weight_cat2).publish_state(x);
+              id(uses_cat2_counter) += 1;
+              id(uses_cat2_today).publish_state(id(uses_cat2_counter));
+            }
+            // Si < 3500g, se descarta (no actualiza nada)
 
   - platform: tuya
-    name: Excreciones del dia
-    id: excretion_times_day
-    unit_of_measurement: 'veces'
+    name: Usos totales
+    id: total_uses
+    unit_of_measurement: 'usos'
     icon: mdi:counter
     state_class: total_increasing
     sensor_datapoint: 7
@@ -325,6 +348,22 @@ sensor:
     unit_of_measurement: 'g'
     device_class: weight
     icon: mdi:weight-kilogram
+
+  - platform: template
+    name: Usos Simba hoy
+    id: uses_cat1_today
+    unit_of_measurement: 'usos'
+    icon: mdi:counter
+    lambda: return id(uses_cat1_counter);
+    update_interval: 60s
+
+  - platform: template
+    name: Usos Fada hoy
+    id: uses_cat2_today
+    unit_of_measurement: 'usos'
+    icon: mdi:counter
+    lambda: return id(uses_cat2_counter);
+    update_interval: 60s
 
 # ========================================
 # SENSORES DE ESTADO Y DIAGNÓSTICO
@@ -390,3 +429,24 @@ binary_sensor:
     id: bag_full
     device_class: problem
     icon: mdi:delete-alert
+    lambda: |-
+      // Threshold en 0 significa siempre lleno
+      if (id(full_bag_threshold).state == 0) {
+        return true;
+      }
+      return id(total_uses).state >= (id(full_bag_threshold).state + 3);
+
+# ========================================
+# AUTOMATIZACIÓN - RESET DIARIO
+# ========================================
+interval:
+  - interval: 24h
+    startup_delay: 1s
+    then:
+      - lambda: |-
+          // Reset contadores a medianoche
+          auto time = id(sntp_time).now();
+          if (time.is_valid() && time.hour == 0 && time.minute < 1) {
+            id(uses_cat1_counter) = 0;
+            id(uses_cat2_counter) = 0;
+          }
