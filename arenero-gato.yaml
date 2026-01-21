@@ -104,20 +104,7 @@ tuya:
             format: "DP24 (enum - modo especial): %d"
             args: ['x']
     
-    # Enteros no mapeados
-    - sensor_datapoint: 109
-      datapoint_type: int
-      then:
-        - logger.log:
-            format: "DP109 (int - temporizador?): %d"
-            args: ['x']
-    
-    - sensor_datapoint: 110
-      datapoint_type: int
-      then:
-        - logger.log:
-            format: "DP110 (int - contador?): %d"
-            args: ['x']
+    # DP109 y DP110 ahora expuestos como numbers para pruebas
     
     # Switches no identificados
     - sensor_datapoint: 112
@@ -127,12 +114,7 @@ tuya:
             format: "DP112 (bool - función?): %s"
             args: ['x ? "ON" : "OFF"']
     
-    - sensor_datapoint: 113
-      datapoint_type: enum
-      then:
-        - logger.log:
-            format: "DP113 (enum - modo?): %d"
-            args: ['x']
+    # DP113 ahora expuesto como select para pruebas
     
     - sensor_datapoint: 119
       datapoint_type: bool
@@ -245,13 +227,60 @@ number:
     unit_of_measurement: 'min'
 
   - platform: tuya
-    name: Umbral de bolsa llena
-    id: full_bag_threshold
+    name: "[TEST] DP109 - Desconocido"
+    id: dp109_test
+    number_datapoint: 109
+    min_value: 0
+    max_value: 100
+    step: 1
+    icon: mdi:help-circle
+
+  - platform: tuya
+    name: "[TEST] DP110 - Desconocido"
+    id: dp110_test
+    number_datapoint: 110
+    min_value: 0
+    max_value: 100
+    step: 1
+    icon: mdi:help-circle
+
+  - platform: tuya
+    name: "[TEST] DP114 - Desconocido"
+    id: dp114_test
     number_datapoint: 114
     min_value: 0
     max_value: 15
-    entity_category: config
     step: 1
+    icon: mdi:help-circle
+
+# ========================================
+# SELECTORES / ENUMS
+# ========================================
+select:
+  - platform: tuya
+    name: Calibración capacidad bolsa
+    id: capacity_calibration
+    enum_datapoint: 113
+    icon: mdi:calendar-clock
+    entity_category: config
+    options:
+      0: "Sin delay (0 días)"
+      1: "1 día"
+      2: "2 días"
+      3: "3 días"
+      4: "4 días"
+      5: "5 días"
+      6: "6 días"
+      7: "7 días"
+      8: "8 días"
+      9: "9 días"
+      10: "10 días"
+      11: "11 días"
+      12: "12 días"
+      13: "13 días"
+      14: "14 días"
+      15: "15 días"
+    # NOTA: Se resetea a 0 tras cada reinicio del dispositivo.
 
 # ========================================
 # SENSORES DE USO Y ACTIVIDAD
@@ -423,18 +452,9 @@ binary_sensor:
     lambda: |-
       return id(real_time_weight).state > 500;
 
-  # Diagnóstico
-  - platform: template
-    name: Bolsa llena
-    id: bag_full
-    device_class: problem
-    icon: mdi:delete-alert
-    lambda: |-
-      // Threshold en 0 significa siempre lleno
-      if (id(full_bag_threshold).state == 0) {
-        return true;
-      }
-      return id(total_uses).state >= (id(full_bag_threshold).state + 3);
+  # NOTA: El LED FULL físico del dispositivo NO está expuesto vía protocolo Tuya.
+  # Es controlado por el firmware del MCU usando lógica interna no accesible.
+  # DP114 (capacity_calibration) solo ajusta el delay de la alerta, no la controla directamente.
 
 # ========================================
 # AUTOMATIZACIÓN - RESET DIARIO
