@@ -3,10 +3,25 @@ substitutions:
 
 packages:
   device_base: !include base_devices/esp12f.yaml
+  logger_tuya_debug: !include common/logger_tuya_debug.yaml
 
 esphome:
   friendly_name: Arenero gatos
   area: bano_pasillo
+
+# ========================================
+# VARIABLES GLOBALES
+# ========================================
+globals:
+  - id: uses_cat1_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
+  
+  - id: uses_cat2_counter
+    type: int
+    restore_value: no
+    initial_value: '0'
 
 
 uart:
@@ -16,8 +31,102 @@ uart:
 
 tuya:
   time_id: sntp_time
+  on_datapoint_update:
+    # DPs no identificados - posiblemente horarios/configuración compleja
+    - sensor_datapoint: 1
+      datapoint_type: raw
+      then:
+        - lambda: |-
+            std::string hex;
+            for (uint8_t b : x) {
+              char buf[3];
+              snprintf(buf, sizeof(buf), "%02X", b);
+              hex += buf;
+            }
+            ESP_LOGI("arenero", "DP1 (RAW - posible horarios): %s (%d bytes)", hex.c_str(), x.size());
+    
+    - sensor_datapoint: 2
+      datapoint_type: raw
+      then:
+        - lambda: |-
+            std::string hex;
+            for (uint8_t b : x) {
+              char buf[3];
+              snprintf(buf, sizeof(buf), "%02X", b);
+              hex += buf;
+            }
+            ESP_LOGI("arenero", "DP2 (RAW - posible config): %s (%d bytes)", hex.c_str(), x.size());
+    
+    # Estados del sistema
+    - sensor_datapoint: 9
+      datapoint_type: enum
+      then:
+        - logger.log:
+            format: "DP9 (enum - estado general): %d"
+            args: ['x']
+    
+    - sensor_datapoint: 10
+      datapoint_type: enum
+      then:
+        - logger.log:
+            format: "DP10 (enum - fault/error): %d"
+            args: ['x']
+    
+    # Bitmasks descubiertos
+    - sensor_datapoint: 21
+      datapoint_type: bitmask
+      then:
+        - lambda: |-
+            ESP_LOGI("arenero", "DP21 (bitmask - flags sistema): 0x%08X", x);
+            // Bit 6 (0x000040) = Limpieza automática (gato)
+            // Bit 8 (0x000100) = Limpieza manual (botón)
+            id(cleaning_active).publish_state((x & 0x000140) != 0);
+            // Bit 10 (0x000400) = Cambiando arena
+            id(replacing_litter).publish_state((x & 0x000400) != 0);
+            // Bit 12 (0x001000) = Desodorizando
+            id(deodorizing_active).publish_state((x & 0x001000) != 0);
+            // Bit 18 (0x040000) = Cambiando bolsa
+            id(replacing_bag).publish_state((x & 0x040000) != 0);
+            // Bit 20 (0x100000) = Calibrando peso/nivelando
+            id(calibrating).publish_state((x & 0x100000) != 0);
+    
+    - sensor_datapoint: 22
+      datapoint_type: bitmask
+      then:
+        - lambda: |-
+            ESP_LOGI("arenero", "DP22 (bitmask - config flags): 0x%08X", x);
+    
+    # Enum 24 - valor especial 255
+    - sensor_datapoint: 24
+      datapoint_type: enum
+      then:
+        - logger.log:
+            format: "DP24 (enum - modo especial): %d"
+            args: ['x']
+    
+    # DP109 y DP110 ahora expuestos como numbers para pruebas
+    
+    # Switches no identificados
+    - sensor_datapoint: 112
+      datapoint_type: bool
+      then:
+        - logger.log:
+            format: "DP112 (bool - función?): %s"
+            args: ['x ? "ON" : "OFF"']
+    
+    # DP113 ahora expuesto como select para pruebas
+    
+    - sensor_datapoint: 119
+      datapoint_type: bool
+      then:
+        - logger.log:
+            format: "DP119 (bool - nueva función?): %s"
+            args: ['x ? "ON" : "OFF"']
 
 
+# ========================================
+# CONTROLES DE LIMPIEZA
+# ========================================
 switch:
   - platform: tuya
     name: Limpiar
@@ -32,41 +141,10 @@ switch:
     switch_datapoint: 4
 
   - platform: tuya
-    name: Deodorizador
-    id: deodorization
-    icon: mdi:leaf
-    switch_datapoint: 17
-
-  - platform: tuya
-    name: Bloqueo infantil
-    id: child_lock
-    icon: mdi:lock
-    switch_datapoint: 103
-
-  - platform: tuya
-    name: Infrarrojo
-    id: infrared
-    icon: mdi:motion-sensor
-    switch_datapoint: 104
-
-  - platform: tuya
-    name: Luz panel
-    id: panel_light
-    icon: mdi:lightbulb
-    inverted: true
-    switch_datapoint: 106
-
-  - platform: tuya
     name: Cambiar arena
     id: replace_litter
     icon: mdi:autorenew
     switch_datapoint: 111
-
-  - platform: tuya
-    name: Inicilizar arenero
-    id: initialize_litter_box
-    icon: mdi:restart
-    switch_datapoint: 115
 
   - platform: tuya
     name: Cambiar bolsa
@@ -74,17 +152,63 @@ switch:
     icon: mdi:delete-empty
     switch_datapoint: 117
 
+# ========================================
+# DEODORIZACIÓN
+# ========================================
+  - platform: tuya
+    name: Deodorizador
+    id: deodorization
+    icon: mdi:leaf
+    switch_datapoint: 17
+
+# ========================================
+# CONFIGURACIÓN Y MANTENIMIENTO
+# ========================================
+  - platform: tuya
+    name: Bloqueo infantil
+    id: child_lock
+    icon: mdi:lock
+    entity_category: config
+    switch_datapoint: 103
+
+  - platform: tuya
+    name: Infrarrojo
+    id: infrared
+    icon: mdi:motion-sensor
+    entity_category: config
+    switch_datapoint: 104
+
+  - platform: tuya
+    name: Luz panel
+    id: panel_light
+    icon: mdi:lightbulb
+    inverted: true
+    entity_category: config
+    switch_datapoint: 106
+
+  - platform: tuya
+    name: Inicilizar arenero
+    id: initialize_litter_box
+    icon: mdi:restart
+    entity_category: config
+    switch_datapoint: 115
+
   - platform: tuya
     name: Calibrar peso
     id: calibrate_weight
     icon: mdi:scale-balance
+    entity_category: config
     switch_datapoint: 118
 
+# ========================================
+# TEMPORIZADORES Y CONFIGURACIÓN
+# ========================================
 number:
   - platform: tuya
     name: Tiempo para comenzar la limpieza
     id: delay_clean_time
     icon: mdi:clock-start
+    entity_category: config
     number_datapoint: 5
     min_value: 0
     max_value: 60
@@ -98,18 +222,69 @@ number:
     min_value: 0
     max_value: 120
     icon: mdi:timelapse
+    entity_category: config
     step: 1
     unit_of_measurement: 'min'
 
   - platform: tuya
-    name: Umbral de bolsa llena
-    id: full_bag_threshold
+    name: "[TEST] DP109 - Desconocido"
+    id: dp109_test
+    number_datapoint: 109
+    min_value: 0
+    max_value: 100
+    step: 1
+    icon: mdi:help-circle
+
+  - platform: tuya
+    name: "[TEST] DP110 - Desconocido"
+    id: dp110_test
+    number_datapoint: 110
+    min_value: 0
+    max_value: 100
+    step: 1
+    icon: mdi:help-circle
+
+  - platform: tuya
+    name: "[TEST] DP114 - Desconocido"
+    id: dp114_test
     number_datapoint: 114
     min_value: 0
     max_value: 15
     step: 1
+    icon: mdi:help-circle
 
+# ========================================
+# SELECTORES / ENUMS
+# ========================================
+select:
+  - platform: tuya
+    name: Calibración capacidad bolsa
+    id: capacity_calibration
+    enum_datapoint: 113
+    icon: mdi:calendar-clock
+    entity_category: config
+    options:
+      0: "Sin delay (0 días)"
+      1: "1 día"
+      2: "2 días"
+      3: "3 días"
+      4: "4 días"
+      5: "5 días"
+      6: "6 días"
+      7: "7 días"
+      8: "8 días"
+      9: "9 días"
+      10: "10 días"
+      11: "11 días"
+      12: "12 días"
+      13: "13 días"
+      14: "14 días"
+      15: "15 días"
+    # NOTA: Se resetea a 0 tras cada reinicio del dispositivo.
 
+# ========================================
+# SENSORES DE USO Y ACTIVIDAD
+# ========================================
 sensor:
   - platform: tuya
     name: Peso gato
@@ -118,18 +293,27 @@ sensor:
     device_class: weight
     id: cat_weight
     sensor_datapoint: 6
-    # internal: true
     on_value:
       then:
         - lambda: |-
-            if (id(cat_weight).state >= 5001 && id(cat_weight).state <= 8000) {
-              return id(weight_cat1).publish_state(x);}
-            else if (id(cat_weight).state >= 3500 && id(cat_weight).state <= 5000) {
-              return id(weight_cat2).publish_state(x);}
+            // Descartar pesos < 3500g (gato con patas fuera)
+            if (x >= 4800) {
+              // Simba: >= 4800g
+              id(weight_cat1).publish_state(x);
+              id(uses_cat1_counter) += 1;
+              id(uses_cat1_today).publish_state(id(uses_cat1_counter));
+            } else if (x >= 3500 && x < 4800) {
+              // Fada: 3500-4799g
+              id(weight_cat2).publish_state(x);
+              id(uses_cat2_counter) += 1;
+              id(uses_cat2_today).publish_state(id(uses_cat2_counter));
+            }
+            // Si < 3500g, se descarta (no actualiza nada)
+
   - platform: tuya
-    name: Excreciones del dia
-    id: excretion_times_day
-    unit_of_measurement: 'veces'
+    name: Usos totales
+    id: total_uses
+    unit_of_measurement: 'usos'
     icon: mdi:counter
     state_class: total_increasing
     sensor_datapoint: 7
@@ -143,6 +327,9 @@ sensor:
     id: excretion_time
     sensor_datapoint: 8
 
+# ========================================
+# SENSORES AMBIENTALES
+# ========================================
   - platform: tuya
     name: Temperatura
     id: temperature
@@ -150,6 +337,7 @@ sensor:
     icon: mdi:thermometer
     device_class: temperature
     state_class: measurement
+    entity_category: diagnostic
     sensor_datapoint: 101
 
   - platform: tuya
@@ -159,8 +347,12 @@ sensor:
     icon: mdi:water-percent
     device_class: humidity
     state_class: measurement
+    entity_category: diagnostic
     sensor_datapoint: 102
 
+# ========================================
+# PESO EN TIEMPO REAL
+# ========================================
   - platform: tuya
     name: Peso en tiempo real
     unit_of_measurement: 'g'
@@ -169,6 +361,9 @@ sensor:
     id: real_time_weight
     sensor_datapoint: 116
 
+# ========================================
+# SENSORES POR GATO (TEMPLATE)
+# ========================================
   - platform: template
     name: Peso Simba
     id: weight_cat1
@@ -182,3 +377,96 @@ sensor:
     unit_of_measurement: 'g'
     device_class: weight
     icon: mdi:weight-kilogram
+
+  - platform: template
+    name: Usos Simba hoy
+    id: uses_cat1_today
+    unit_of_measurement: 'usos'
+    icon: mdi:counter
+    lambda: return id(uses_cat1_counter);
+    update_interval: 60s
+
+  - platform: template
+    name: Usos Fada hoy
+    id: uses_cat2_today
+    unit_of_measurement: 'usos'
+    icon: mdi:counter
+    lambda: return id(uses_cat2_counter);
+    update_interval: 60s
+
+# ========================================
+# SENSORES DE ESTADO Y DIAGNÓSTICO
+# ========================================
+text_sensor:
+  - platform: tuya
+    name: Estado DP9
+    id: dp9_state
+    sensor_datapoint: 9
+    entity_category: diagnostic
+    disabled_by_default: true
+
+  - platform: tuya
+    name: Fault DP10
+    id: dp10_fault
+    sensor_datapoint: 10
+    entity_category: diagnostic
+    disabled_by_default: true
+
+binary_sensor:
+  # Estado operacional
+  - platform: template
+    name: Limpiando
+    id: cleaning_active
+    device_class: running
+    icon: mdi:broom
+
+  - platform: template
+    name: Desodorizando
+    id: deodorizing_active
+    device_class: running
+    icon: mdi:spray
+
+  - platform: template
+    name: Cambiando arena
+    id: replacing_litter
+    device_class: running
+    icon: mdi:autorenew
+
+  - platform: template
+    name: Cambiando bolsa
+    id: replacing_bag
+    device_class: running
+    icon: mdi:delete-empty
+
+  - platform: template
+    name: Calibrando
+    id: calibrating
+    device_class: running
+    icon: mdi:scale-balance
+
+  - platform: template
+    name: Gato dentro
+    id: cat_present
+    device_class: occupancy
+    icon: mdi:cat
+    lambda: |-
+      return id(real_time_weight).state > 500;
+
+  # NOTA: El LED FULL físico del dispositivo NO está expuesto vía protocolo Tuya.
+  # Es controlado por el firmware del MCU usando lógica interna no accesible.
+  # DP114 (capacity_calibration) solo ajusta el delay de la alerta, no la controla directamente.
+
+# ========================================
+# AUTOMATIZACIÓN - RESET DIARIO
+# ========================================
+interval:
+  - interval: 24h
+    startup_delay: 1s
+    then:
+      - lambda: |-
+          // Reset contadores a medianoche
+          auto time = id(sntp_time).now();
+          if (time.is_valid() && time.hour == 0 && time.minute < 1) {
+            id(uses_cat1_counter) = 0;
+            id(uses_cat2_counter) = 0;
+          }
