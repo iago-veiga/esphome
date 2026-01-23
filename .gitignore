@@ -6,3 +6,12 @@
 /secrets.yaml
 /archive/docs/
 /docs/
+
+# Local Python environments
+/.venv/
+/.venv-*/
+/.venv-esphome-*/
+
+# Local ESPHome validation / update logs
+/.validate-*-logs/
+/.update-*-logs/
