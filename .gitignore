@@ -4,7 +4,7 @@
 /.esphome/
 /base_devices/.esphome/
 /secrets.yaml
-/archive/docs/
+/archive/
 /docs/
 
 # Local Python environments
