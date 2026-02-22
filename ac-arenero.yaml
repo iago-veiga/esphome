@@ -8,3 +8,11 @@ esphome:
   friendly_name: Alimentación arenero
   area: bano_pasillo
 
+button:
+  - platform: template
+    name: Reiniciar relé
+    on_press:
+      - switch.turn_off: switch_1
+      - delay: 2s
+      - switch.turn_on: switch_1
+
