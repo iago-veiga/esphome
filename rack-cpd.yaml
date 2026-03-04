@@ -1,0 +1,18 @@
+substitutions:
+  device_name: rack-cpd
+
+packages:
+  device_base: !include base_devices/sonoff-powr320d.yaml
+
+esphome:
+  friendly_name: Rack CPD
+  area: trastero
+
+button:
+  - platform: template
+    name: Reiniciar servidor
+    icon: mdi:server-off
+    on_press:
+      - switch.turn_off: relay_1
+      - delay: 5s
+      - switch.turn_on: relay_1
