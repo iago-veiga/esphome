@@ -37,6 +37,7 @@ sensor:
         - throttle_average: 10s
     power:
       name: Potencia
+      id: w_sensor
       filters:
         - throttle_average: 10s
     energy:
@@ -45,17 +46,27 @@ sensor:
         - throttle_average: 10s
         - delta: 0.001
     apparent_power:
-      name: "Sonoff Pow R2 Apparent Power"
+      name: Potencia aparente
       filters:
         - throttle_average: 10s
     reactive_power:
-      name: "Sonoff Pow R2 Reactive Power"
+      name: Potencia reactiva
       filters:
         - throttle_average: 10s
     power_factor:
-      name: "Sonoff Pow R2 Power Factor"
+      name: Factor de potencia
       filters:
         - throttle_average: 10s
+
+  - platform: total_daily_energy
+    name: Energía diaria
+    power_id: w_sensor
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    filters:
+      - multiply: 0.001
 
 text_sensor:
   - <<: !include ../common/text_sensor/wifi_info.yaml
