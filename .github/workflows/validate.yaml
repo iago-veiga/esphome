@@ -1,0 +1,17 @@
+name: Validate ESPHome configs
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare example secrets
+        run: cp secrets.yaml.example secrets.yaml
+      - name: Check repository conventions
+        run: make check
+      - name: Validate configs
+        run: make validate

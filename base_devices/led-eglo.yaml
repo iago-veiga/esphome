@@ -6,13 +6,7 @@ esp8266:
     board: esp12e
 
 packages:
-  api: !include ../common/api.yaml
-  wifi: !include ../common/wifi.yaml
-  ota: !include ../common/ota.yaml
-  logger: !include ../common/logger.yaml
-  web_server: !include ../common/web_server.yaml
-  captive_portal: !include ../common/captive_portal.yaml
-  syslog: !include ../common/syslog.yaml
+  core: !include ../common/core.yaml
 
 sensor:
   - <<: !include ../common/sensor/wifi_signal.yaml

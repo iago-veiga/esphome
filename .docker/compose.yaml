@@ -1,0 +1,19 @@
+services:
+  esphome:
+    image: ghcr.io/esphome/esphome:${ESPHOME_VERSION:-2026.5.3}
+    network_mode: host
+    working_dir: /config
+    volumes:
+      - .:/config
+      - platformio:/cache
+      - platformio_core:/root/.platformio
+    environment:
+      TZ: ${TZ:-Europe/Madrid}
+      ESPHOME_CONTAINER: "1"
+      PLATFORMIO_PLATFORMS_DIR: /cache/platformio/platforms
+      PLATFORMIO_PACKAGES_DIR: /cache/platformio/packages
+      PLATFORMIO_CACHE_DIR: /cache/platformio/cache
+
+volumes:
+  platformio:
+  platformio_core:

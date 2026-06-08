@@ -1,0 +1,8 @@
+packages:
+  api: !include api.yaml
+  wifi: !include wifi.yaml
+  ota: !include ota.yaml
+  logger: !include logger.yaml
+  web_server: !include web_server.yaml
+  captive_portal: !include captive_portal.yaml
+  syslog: !include syslog.yaml

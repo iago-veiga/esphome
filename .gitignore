@@ -5,13 +5,17 @@
 /base_devices/.esphome/
 /secrets.yaml
 /archive/
-/docs/
 
 # Local Python environments
 /.venv/
 /.venv-*/
 /.venv-esphome-*/
+__pycache__/
+*.py[cod]
 
 # Local ESPHome validation / update logs
 /.validate-*-logs/
 /.update-*-logs/
+
+# Optional local Docker Compose overrides
+/.env

@@ -17,13 +17,7 @@ esp32:
       ignore_efuse_custom_mac: true
 
 packages:
-  api: !include ../common/api.yaml
-  captive_portal: !include ../common/captive_portal.yaml
-  logger: !include ../common/logger.yaml
-  ota: !include ../common/ota.yaml
-  wifi: !include ../common/wifi.yaml
-  web_server: !include ../common/web_server.yaml
-  syslog: !include ../common/syslog.yaml
+  core: !include ../common/core.yaml
 
 sensor:
   - <<: !include ../common/sensor/wifi_signal.yaml

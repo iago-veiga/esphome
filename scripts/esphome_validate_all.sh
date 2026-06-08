@@ -4,24 +4,36 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-VENV_DIR="${VENV_DIR:-$REPO_ROOT/.venv-esphome-latest}"
-if [ ! -x "$VENV_DIR/bin/esphome" ]; then
-  echo "ERROR: ESPHome venv not found at $VENV_DIR" >&2
-  echo "Create it with: python3 -m venv .venv-esphome-latest && . .venv-esphome-latest/bin/activate && pip install -U esphome" >&2
-  exit 1
+if [ "${ESPHOME_CONTAINER:-0}" != "1" ]; then
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "ERROR: Docker is required" >&2
+    exit 1
+  fi
+  exec docker compose -f .docker/compose.yaml --project-directory "$REPO_ROOT" \
+    run --rm --entrypoint /bin/bash esphome /config/scripts/esphome_validate_all.sh "$@"
 fi
 
-. "$VENV_DIR/bin/activate"
 VERSION="$(esphome version | awk '{print $2}')"
 LOGDIR=".validate-${VERSION}-logs"
 mkdir -p "$LOGDIR"
 
-mapfile -t configs < <(ls -1 *.yaml | grep -v '^secrets\.yaml$' | sort)
+if [ "$#" -gt 0 ]; then
+  configs=("$@")
+else
+  mapfile -t configs < <(find . -maxdepth 1 -type f -name '*.yaml' \
+    ! -name 'secrets.yaml' -printf '%f\n' | sort)
+fi
 
 echo "Validating ${#configs[@]} configs with ESPHome $VERSION"
 
 failed=0
 for f in "${configs[@]}"; do
+  if [ ! -f "$f" ]; then
+    echo "[FAIL] $f does not exist" >&2
+    failed=1
+    continue
+  fi
+
   echo "[config] $f"
   if ! esphome config "$f" >"$LOGDIR/${f%.yaml}.log" 2>&1; then
     echo "[FAIL] $f (see $LOGDIR/${f%.yaml}.log)" >&2
