@@ -19,3 +19,6 @@ __pycache__/
 
 # Optional local Docker Compose overrides
 /.env
+
+# Home Assistant checkout synchronization log
+/.sync-home-assistant.log
