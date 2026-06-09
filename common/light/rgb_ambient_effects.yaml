@@ -1,0 +1,3 @@
+- !include effects/vela_suave.yaml
+- !include effects/respiracion.yaml
+- !include effects/aurora_lenta.yaml

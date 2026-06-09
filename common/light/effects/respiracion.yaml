@@ -1,0 +1,6 @@
+pulse:
+  name: Respiracion
+  transition_length: 3s
+  update_interval: 3s
+  min_brightness: 15%
+  max_brightness: 60%

@@ -1,0 +1,4 @@
+random:
+  name: Aurora lenta
+  transition_length: 20s
+  update_interval: 25s

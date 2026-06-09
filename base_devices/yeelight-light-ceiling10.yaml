@@ -102,3 +102,4 @@ light:
     green: output_green
     blue: output_blue
     gamma_correct: 0
+    effects: !include ../common/light/rgb_ambient_effects.yaml
