@@ -10,7 +10,8 @@ if [ "${ESPHOME_CONTAINER:-0}" != "1" ]; then
     exit 1
   fi
   exec docker compose -f .docker/compose.yaml --project-directory "$REPO_ROOT" \
-    run --rm --entrypoint /bin/bash esphome /config/scripts/esphome_update_all.sh "$@"
+    run --rm -e MODE -e SKIP_CURRENT -e DEVICE -e LOGROOT -e VERSION_CHECK_TIMEOUT \
+    --entrypoint /bin/bash esphome /config/scripts/esphome_update_all.sh "$@"
 fi
 
 VERSION="$(esphome version | awk '{print $2}')"
@@ -136,11 +137,14 @@ for f in "${configs[@]}"; do
   fi
 
   base="${f%.yaml}"
+  fingerprint="$(python3 scripts/config_fingerprint.py "$f")"
   echo "== $f =="
+  echo "[fingerprint] $fingerprint"
 
   if [ "$MODE" = "compile-only" ]; then
     echo "[compile] $f"
-    if esphome compile "$f" >"$LOGDIR/${base}.compile.log" 2>&1; then
+    if esphome -s firmware_version "$fingerprint" compile "$f" \
+      >"$LOGDIR/${base}.compile.log" 2>&1; then
       ok_compile=$((ok_compile+1))
     else
       echo "[FAIL compile] $f (see $LOGDIR/${base}.compile.log)" >&2
@@ -158,16 +162,19 @@ for f in "${configs[@]}"; do
 
     target="$DEVICE"
     if [ -z "$target" ]; then
-      target="${device_name}.local"
+      target="$(python3 scripts/inventory.py --address "$device_name")"
     fi
 
     if [ "$SKIP_CURRENT" = "1" ] && [[ "$target" != /dev/* ]]; then
       version_error="$LOGDIR/${base}.version.log"
-      if current_version="$(timeout --kill-after=2s "${VERSION_CHECK_TIMEOUT}s" \
-        python3 scripts/device_version.py "$target" "$device_name" \
-        --timeout "$VERSION_CHECK_TIMEOUT" 2>"$version_error")"; then
-        echo "[version] $target reports $current_version"
-        if [ "$current_version" = "$VERSION" ]; then
+      if current_info="$(timeout --kill-after=2s "${VERSION_CHECK_TIMEOUT}s" \
+        python3 scripts/device_info.py "$target" "$device_name" \
+        --timeout "$VERSION_CHECK_TIMEOUT" --details 2>"$version_error")"; then
+        IFS=$'\t' read -r current_version project_name current_fingerprint <<<"$current_info"
+        echo "[version] $target reports ESPHome $current_version, firmware ${current_fingerprint:-unknown}"
+        if [ "$current_version" = "$VERSION" ] \
+          && [ "$project_name" = "meular.esphome" ] \
+          && [ "$current_fingerprint" = "$fingerprint" ]; then
           echo "[skip current] $f"
           skip_current=$((skip_current+1))
           continue
@@ -179,7 +186,8 @@ for f in "${configs[@]}"; do
     fi
 
     echo "[run] $f"
-    if esphome run --no-logs --device "$target" "$f" >"$LOGDIR/${base}.run.log" 2>&1; then
+    if esphome -s firmware_version "$fingerprint" run --no-logs --device "$target" "$f" \
+      >"$LOGDIR/${base}.run.log" 2>&1; then
       ok_run=$((ok_run+1))
     else
       echo "[FAIL run] $f (see $LOGDIR/${base}.run.log)" >&2

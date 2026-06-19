@@ -9,6 +9,7 @@
 - `common/behaviors/`: comportamientos reutilizables independientes del hardware.
 - `common/light/effects/`: efectos de luz reutilizables e independientes.
 - `common/light/*_effects.yaml`: colecciones de efectos para tipos de luz.
+- `inventory/devices.yaml`: inventario operativo y overrides de conexión.
 - `common/`: componentes compartidos como WiFi, API, OTA y logging.
 - `scripts/`: automatización de validación, compilación y actualización.
 - `.docker/`: entorno reproducible local; oculto al Dashboard.
@@ -34,4 +35,7 @@ La separación intencionada es:
   Home Assistant.
 - `secrets.yaml` nunca se versiona. `secrets.yaml.example` documenta sus claves.
 - `make update` siempre despliega configuraciones seleccionadas.
-- `make update-all` compara versiones antes de actualizar toda la instalación.
+- `make update-all` compara versiones y huellas antes de actualizar.
+- La huella de firmware se calcula sobre el YAML desplegable y sus `!include`.
+- El grafo de `!include` también determina los dispositivos afectados por cada
+  cambio Git.

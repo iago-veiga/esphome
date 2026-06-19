@@ -1,0 +1,7 @@
+substitutions:
+  firmware_version: unmanaged
+
+esphome:
+  project:
+    name: meular.esphome
+    version: ${firmware_version}

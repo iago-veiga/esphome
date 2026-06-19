@@ -1,0 +1,48 @@
+# Operational inventory. Device metadata is derived from root configs.
+# Add address/model/notes overrides only when the defaults are insufficient.
+devices:
+  12v-mesa-estudio: {}
+  ac-arenero: {}
+  ac-lavadora: {}
+  ac-lavavajillas: {}
+  ac-luz-entrada-dormitorio: {}
+  ac-luz-entrada-estudio: {}
+  ac-luz-entrada-salon: {}
+  ac-luz-principal-dormitorio: {}
+  ac-luz-principal-estudio: {}
+  ac-luz-principal-salon: {}
+  ac-subwoofer: {}
+  ac-termo-cocina: {}
+  arenero-gato: {}
+  ble-gateway: {}
+  comedero-gato: {}
+  consumo-electrico: {}
+  cuadro-telecomunicaciones: {}
+  dht-trastero: {}
+  extractor-trastero: {}
+  luz-armario-dormitorio: {}
+  luz-armario-estudio: {}
+  luz-bano-dormitorio: {}
+  luz-bano-pasillo: {}
+  luz-entrada-cocina: {}
+  luz-entrada-dormitorio: {}
+  luz-entrada-estudio: {}
+  luz-entrada-salon:
+    address: 192.168.10.232
+  luz-mesa-estudio: {}
+  luz-pasillo: {}
+  luz-principal-cocina: {}
+  luz-principal-dormitorio: {}
+  luz-principal-estudio: {}
+  luz-principal-salon:
+    address: 192.168.10.234
+  luz-rellano: {}
+  luz-trastero: {}
+  mesa-estudio: {}
+  persiana-dormitorio: {}
+  persiana-estudio: {}
+  rack-cpd: {}
+  temperatura-exterior-trastero: {}
+  termo-electrico: {}
+  ventilador-rack-1: {}
+  ventilador-rack-2: {}

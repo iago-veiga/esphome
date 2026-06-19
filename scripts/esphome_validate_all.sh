@@ -35,7 +35,9 @@ for f in "${configs[@]}"; do
   fi
 
   echo "[config] $f"
-  if ! esphome config "$f" >"$LOGDIR/${f%.yaml}.log" 2>&1; then
+  fingerprint="$(python3 scripts/config_fingerprint.py "$f")"
+  if ! esphome -s firmware_version "$fingerprint" config "$f" \
+    >"$LOGDIR/${f%.yaml}.log" 2>&1; then
     echo "[FAIL] $f (see $LOGDIR/${f%.yaml}.log)" >&2
     tail -n 40 "$LOGDIR/${f%.yaml}.log" | sed 's/^/  /' >&2
     failed=1

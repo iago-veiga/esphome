@@ -6,8 +6,9 @@ Después de editar uno o varios dispositivos:
 
 ```bash
 make check
-make validate CONFIGS="dispositivo.yaml"
-make update CONFIGS="dispositivo.yaml"
+make affected BASE=origin/master
+make validate-affected BASE=origin/master
+make update-affected BASE=origin/master
 ```
 
 Después de cambiar la versión ESPHome fijada:
@@ -51,9 +52,14 @@ pioarduino genera durante las compilaciones ESP32.
 
 1. Copiar `secrets.yaml.example` a `secrets.yaml` si el entorno aún no lo tiene.
 2. Crear un YAML en raíz cuyo nombre coincida con `device_name`.
-3. Reutilizar un hardware de `base_devices/` o crear uno nuevo.
-4. Ejecutar `make validate CONFIGS="nuevo-dispositivo.yaml"`.
-5. Realizar primera carga y después usar OTA mediante `make update`.
+3. Añadir el dispositivo a `inventory/devices.yaml`. Puede declararse `address`
+   si no debe usarse el destino predeterminado `<device_name>.local`.
+4. Reutilizar un hardware de `base_devices/` o crear uno nuevo.
+5. Ejecutar `make validate CONFIGS="nuevo-dispositivo.yaml"`.
+6. Realizar primera carga y después usar OTA mediante `make update`.
+
+`make inventory` muestra nombre, área, base, destino y huella esperada de todos
+los dispositivos.
 
 ## Sincronización con Home Assistant
 
@@ -69,13 +75,23 @@ solo acepta actualizaciones fast-forward. Se detiene sin modificar archivos si
 la rama activa no es la esperada, existen cambios locales versionados o el
 historial ha divergido.
 
+Por defecto solo sincroniza el checkout. Para actualizar por OTA los
+dispositivos afectados después de cada fast-forward:
+
+```bash
+UPDATE_AFFECTED=1 ./scripts/sync_home_assistant.sh
+```
+
+Esta opción calcula el impacto entre el commit anterior y el nuevo. No actualiza
+dispositivos cuando el merge solo modifica documentación o herramientas.
+
 El servidor debe usar una deploy key de GitHub de solo lectura. En Advanced SSH
 & Web Terminal puede programarse cada cinco minutos con un `init_command` que
 añada esta entrada al crontab:
 
 ```cron
-*/5 * * * * cd /root/config/esphome && ./scripts/sync_home_assistant.sh >> /root/config/esphome/.sync-home-assistant.log 2>&1
+*/5 * * * * cd /root/config/esphome && UPDATE_AFFECTED=1 ./scripts/sync_home_assistant.sh >> /root/config/esphome/.sync-home-assistant.log 2>&1
 ```
 
-La sincronización actualiza los YAML visibles por ESPHome Device Builder, pero
-no compila ni instala firmware automáticamente.
+Sin `UPDATE_AFFECTED=1`, la sincronización solo actualiza los YAML visibles por
+ESPHome Device Builder y no instala firmware.

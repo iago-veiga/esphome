@@ -29,7 +29,5 @@ temporalmente desconectado.
 
 ## GPIO
 
-- `rack-cpd.yaml` genera warning porque GPIO5 es strapping pin. Confirmar que el
-  uso del LED es correcto y documentar `ignore_strapping_warning` si procede.
 - `base_devices/sonoffmini.yaml` declara GPIO0 como salida `button_1`, aunque
   ninguna configuración actual lo usa. Confirmar hardware antes de eliminarlo.

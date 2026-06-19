@@ -15,15 +15,15 @@ cover:
 
     open_sensor: current_2
     open_moving_current_threshold: 0.5
-    open_obstacle_current_threshold: 1
-    open_duration: 15s
+    open_obstacle_current_threshold: 1.0
+    open_duration: 30s
     open_action:
       - switch.turn_on: relay_2
 
     close_sensor: current_1
     close_moving_current_threshold: 0.5
-    close_obstacle_current_threshold: 1
-    close_duration: 15s
+    close_obstacle_current_threshold: 1.0
+    close_duration: 30s
     close_action:
       - switch.turn_on: relay_1
 
@@ -31,26 +31,44 @@ cover:
       - switch.turn_off: relay_2
       - switch.turn_off: relay_1
 
-    start_sensing_delay: 0.8s
+    start_sensing_delay: 1.5s
+    max_duration: 45s
+    obstacle_rollback: 0%
+    malfunction_detection: true
+
+script:
+  - id: wall_switch_action
+    mode: restart
+    then:
+      - delay: 150ms
+      - if:
+          condition:
+            and:
+              - binary_sensor.is_on: switch_1
+              - binary_sensor.is_off: switch_2
+          then:
+            - cover.close: cover_1
+          else:
+            - if:
+                condition:
+                  and:
+                    - binary_sensor.is_off: switch_1
+                    - binary_sensor.is_on: switch_2
+                then:
+                  - cover.open: cover_1
+                else:
+                  - cover.stop: cover_1
 
 binary_sensor:
   - id: !extend switch_1
+    filters:
+      - delayed_on_off: 100ms
     on_state:
       then:
-        - if:
-            condition:
-              binary_sensor.is_on: switch_1
-            then:
-              cover.close: cover_1
-            else:
-              cover.stop: cover_1
+        - script.execute: wall_switch_action
   - id: !extend switch_2
+    filters:
+      - delayed_on_off: 100ms
     on_state:
       then:
-        - if:
-            condition:
-              binary_sensor.is_on: switch_2
-            then:
-              cover.open: cover_1
-            else:
-              cover.stop: cover_1
+        - script.execute: wall_switch_action

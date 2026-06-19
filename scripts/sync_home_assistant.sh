@@ -32,3 +32,7 @@ fi
 
 git merge --ff-only --quiet "origin/$BRANCH"
 echo "Updated $BRANCH: $local_commit -> $remote_commit"
+
+if [ "${UPDATE_AFFECTED:-0}" = "1" ]; then
+  ./scripts/esphome_update_affected.sh --base "$local_commit" --head "$remote_commit"
+fi

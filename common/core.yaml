@@ -1,4 +1,5 @@
 packages:
+  project: !include project.yaml
   api: !include api.yaml
   wifi: !include wifi.yaml
   ota: !include ota.yaml
