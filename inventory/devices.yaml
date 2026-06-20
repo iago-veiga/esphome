@@ -3,6 +3,8 @@
 devices:
   12v-mesa-estudio: {}
   ac-arenero: {}
+  ac-congelador:
+    address: 192.168.10.56
   ac-lavadora: {}
   ac-lavavajillas: {}
   ac-luz-entrada-dormitorio: {}
@@ -41,7 +43,8 @@ devices:
   mesa-estudio: {}
   persiana-dormitorio: {}
   persiana-estudio: {}
-  rack-cpd: {}
+  rack-cpd:
+    address: 192.168.10.188
   temperatura-exterior-trastero: {}
   termo-electrico: {}
   ventilador-rack-1: {}
