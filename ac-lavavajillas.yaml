@@ -6,4 +6,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación lavavajillas
+  comment: Sonoff S60 que mide y controla la alimentación del lavavajillas.
   area: cocina

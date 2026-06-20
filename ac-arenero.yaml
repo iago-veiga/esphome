@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Alimentación arenero
+  comment: Sonoff S60 que mide y controla la alimentación del arenero.
   area: bano_pasillo
 
 button:
@@ -15,4 +16,3 @@ button:
       - switch.turn_off: switch_1
       - delay: 2s
       - switch.turn_on: switch_1
-

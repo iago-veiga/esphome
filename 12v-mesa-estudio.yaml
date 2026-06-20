@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Fuente alimentación mesa estudio
+  comment: Sonoff Basic R2 que conmuta la fuente de 12 V de la mesa.
   area: estudio
 
 switch:

@@ -7,4 +7,5 @@ packages:
 
 esphome:
   friendly_name: Luz entrada cocina
+  comment: Sonoff Mini que controla la iluminación de entrada.
   area: cocina

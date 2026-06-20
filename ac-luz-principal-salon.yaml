@@ -8,4 +8,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz principal salón
+  comment: Sonoff Mini que controla la alimentación de la luminaria principal.
   area: salon

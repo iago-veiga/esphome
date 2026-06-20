@@ -7,6 +7,7 @@ packages:
 
 esphome:
   friendly_name: Luz entrada salon
+  comment: Yeelight Ceiling Light 10 con control de luz principal y nocturna.
   area: salon
   on_boot: 
     then:
@@ -14,5 +15,4 @@ esphome:
             id: ceiling_light
             brightness: 80%
             color_temperature: 2700K
-
 

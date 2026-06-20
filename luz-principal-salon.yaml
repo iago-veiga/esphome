@@ -7,6 +7,7 @@ packages:
 
 esphome:
   friendly_name: Luz principal salon
+  comment: Yeelight Ceiling Light 20 con luz principal, nocturna y ambiente.
   area: salon
   on_boot: 
     then:

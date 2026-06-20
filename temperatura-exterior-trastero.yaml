@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Temperatura exterior trastero
+  comment: ESP-01 con sonda Dallas DS18B20 de temperatura exterior.
   area: trastero
 
 one_wire:

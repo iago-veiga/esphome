@@ -7,6 +7,7 @@ packages:
 
 esphome:
   friendly_name: Termo
+  comment: Control ESP8266 con MCU Tuya del termo eléctrico.
   area: cocina
 
 uart:

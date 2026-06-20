@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Cuadro telecomunicaciones
+  comment: Sonoff Basic R2 que controla la alimentación del cuadro de telecomunicaciones.
   area: pasillo
 
 switch:

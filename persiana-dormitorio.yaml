@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Persiana dormitorio
+  comment: Sonoff Dual R3 con posición estimada mediante consumo.
   area: dormitorio
 
 cover:

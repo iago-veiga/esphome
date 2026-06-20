@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Extractor trastero
+  comment: Sonoff Basic R2 que controla el extractor como ventilador.
   area: trastero
 
 fan:

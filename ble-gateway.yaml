@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Gateway BLE
+  comment: ESP32 dedicado como proxy Bluetooth para Home Assistant.
   area: pasillo
 
 bluetooth_proxy:

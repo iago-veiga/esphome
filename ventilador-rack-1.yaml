@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Ventilador 1 rack trastero
+  comment: Sonoff Basic R2 que controla el primer ventilador del rack.
   area: trastero
 
 fan:

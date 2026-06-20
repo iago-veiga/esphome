@@ -8,4 +8,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz entrada estudio
+  comment: Sonoff Mini que controla la alimentación de la luminaria de entrada.
   area: estudio

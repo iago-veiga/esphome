@@ -6,5 +6,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación lavadora
+  comment: Sonoff S60 que mide y controla la alimentación de la lavadora.
   area: cocina
-

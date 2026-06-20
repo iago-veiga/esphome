@@ -6,7 +6,7 @@ packages:
 
 esphome:
   friendly_name: Consumo electrico
+  comment: Sonoff POWCT para medir el consumo eléctrico general.
   area: pasillo
 
 # Nota: la configuración anterior (PZEM/modbus) se guardó en `archive/consumo-electrico-pzem.yaml`.
-

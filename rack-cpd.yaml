@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Rack CPD
+  comment: Sonoff POWR320D para alimentación y medida del rack CPD.
   area: trastero
 
 button:

@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz armario dormitorio
+  comment: Controlador WS02 para la tira LED CCT del armario.
   area: dormitorio
 
 light:

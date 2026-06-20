@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Luz mesa estudio
+  comment: Controlador ESP8266 con MCU Tuya para la tira LED RGB+CCT.
   area: estudio
 
 uart:

@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Mesa estudio
+  comment: Sonoff Basic R2 que controla la alimentación de la mesa.
   area: estudio
 
 switch:

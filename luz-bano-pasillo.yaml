@@ -7,4 +7,5 @@ packages:
 
 esphome:
   friendly_name: Luz baño pasillo
+  comment: Sonoff Mini que controla la iluminación del baño.
   area: bano_pasillo

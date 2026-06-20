@@ -8,4 +8,5 @@ packages:
 
 esphome:
   friendly_name: Alimentación luz principal dormitorio
+  comment: Sonoff Mini que controla la alimentación de la luminaria principal.
   area: dormitorio

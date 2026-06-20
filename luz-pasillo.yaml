@@ -7,4 +7,5 @@ packages:
 
 esphome:
   friendly_name: Luz pasillo
+  comment: Sonoff Mini que controla la iluminación del pasillo.
   area: pasillo

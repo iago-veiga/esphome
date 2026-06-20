@@ -7,4 +7,5 @@ packages:
 
 esphome:
   friendly_name: Luz principal cocina
+  comment: Sonoff Mini que controla la iluminación principal.
   area: cocina

@@ -7,4 +7,5 @@ packages:
 
 esphome:
   friendly_name: Luz trastero
+  comment: Sonoff Mini que controla la iluminación del trastero.
   area: trastero

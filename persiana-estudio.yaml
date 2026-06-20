@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Persiana estudio
+  comment: Sonoff Dual R3 con posición estimada mediante consumo.
   area: estudio
 
 cover:

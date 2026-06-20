@@ -7,6 +7,7 @@ packages:
 
 esphome:
   friendly_name: Comedero gatos
+  comment: Control ESP32-C3 con MCU Tuya del comedero automático.
   area: cocina
   includes:
     - common/cpp/mealplan_codec.h
@@ -330,4 +331,3 @@ switch:
     id: quick_feed
     switch_datapoint: 2
     internal: True
-

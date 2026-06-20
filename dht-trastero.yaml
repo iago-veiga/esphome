@@ -6,6 +6,7 @@ packages:
 
 esphome:
   friendly_name: Temperatura y humedad trastero
+  comment: ESP-01 con sensor SI7021 de temperatura y humedad.
   area: trastero
 
 sensor:
