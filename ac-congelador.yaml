@@ -1,0 +1,10 @@
+substitutions:
+  device_name: ac-congelador
+
+packages:
+  device_base: !include base_devices/sonoffs60.yaml
+
+esphome:
+  friendly_name: Alimentación congelador
+  comment: Sonoff S60 que mide y controla la alimentación del congelador.
+  area: trastero
