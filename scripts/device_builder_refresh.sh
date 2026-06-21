@@ -28,8 +28,8 @@ fi
 
 if [ -z "${DEVICE_BUILDER_WS_URL:-}" ]; then
   ingress_port="$(
-    docker top "$DEVICE_BUILDER_CONTAINER" -eo args 2>/dev/null \
-      | awk '/esphome-device-builder/ {
+    docker top "$DEVICE_BUILDER_CONTAINER" -eo pid,args 2>/dev/null \
+      | awk 'index($0, "esphome-device-builder") {
           for (i = 1; i <= NF; i++) {
             if ($i == "--ingress-port" && (i + 1) <= NF) {
               print $(i + 1)
