@@ -26,6 +26,23 @@ if [ "$state" != "running" ]; then
   exit 1
 fi
 
+if [ -z "${DEVICE_BUILDER_WS_URL:-}" ]; then
+  ingress_port="$(
+    docker top "$DEVICE_BUILDER_CONTAINER" -eo args 2>/dev/null \
+      | awk '/esphome-device-builder/ {
+          for (i = 1; i <= NF; i++) {
+            if ($i == "--ingress-port" && (i + 1) <= NF) {
+              print $(i + 1)
+              exit
+            }
+          }
+        }'
+  )"
+  if [ -n "$ingress_port" ]; then
+    DEVICE_BUILDER_WS_URL="http://127.0.0.1:${ingress_port}/ws"
+  fi
+fi
+
 exec docker exec \
   -e DEVICE_BUILDER_IN_CONTAINER=1 \
   -e DEVICE_BUILDER_WS_URL="${DEVICE_BUILDER_WS_URL:-http://127.0.0.1:6052/ws}" \
