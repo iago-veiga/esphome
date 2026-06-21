@@ -120,10 +120,9 @@ class WsClient:
             payload = msg.json()
             if payload.get("message_id") != message_id:
                 continue
-            kind = payload.get("type")
-            if kind == "result":
+            if "result" in payload and "error_code" not in payload:
                 return payload.get("result")
-            if kind == "error":
+            if "error_code" in payload:
                 raise RuntimeError(
                     f"{command} failed: {payload.get('error_code')} {payload.get('details', '')}".strip()
                 )
