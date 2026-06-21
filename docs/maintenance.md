@@ -83,9 +83,9 @@ la rama activa no es la esperada, existen cambios locales versionados o el
 historial ha divergido.
 
 Después de cada fast-forward, el script refresca por defecto el `build_info.json`
-del ESPHome Device Builder para los YAML afectados. Eso hace que la columna
-`Local` del dashboard refleje el mismo hash nativo que `make status` compara con
-los dispositivos desplegados.
+del ESPHome Device Builder para los YAML afectados mediante su propia API. Eso
+hace que la columna `Local` del dashboard refleje el mismo hash nativo que
+`make status` compara con los dispositivos desplegados.
 
 Si en algún momento solo quieres sincronizar Git sin tocar la metadata del
 dashboard:

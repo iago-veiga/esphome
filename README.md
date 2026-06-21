@@ -94,9 +94,10 @@ el panel puede mostrar temporalmente un hash local antiguo. Tras generar o
 instalar desde ese dashboard, compara exactamente el mismo hash nativo.
 
 `scripts/device_builder_refresh.sh` automatiza ese refresco dentro del add-on de
-Home Assistant ejecutando `esphome compile --only-generate` para los YAML
+Home Assistant haciendo un guardado sin cambios a traves de la API WebSocket del
+propio Device Builder. Eso dispara su `storage_regen` interno para los YAML
 seleccionados. Puede recibir configs explícitos, `--all` o `--base/--head` para
-regenerar solo los dispositivos afectados por un rango Git.
+refrescar solo los dispositivos afectados por un rango Git.
 
 `config_fingerprint.py` conserva una huella SHA-256 del contenido versionado para
 analizar dependencias e inventario, pero ya no se inyecta en el firmware ni se
