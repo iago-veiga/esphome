@@ -29,6 +29,7 @@ ESPHOME_VERSION=2026.4.0 make version
 make version
 make check
 make inventory
+make status
 make affected BASE=origin/master
 make validate
 make validate-affected BASE=origin/master
@@ -39,6 +40,7 @@ make update-affected BASE=origin/master
 make update-all
 make force-update-all
 make update CONFIGS="luz-principal-salon.yaml" DEVICE=192.168.10.50
+./scripts/device_builder_refresh.sh --base origin/master
 make dashboard
 ```
 
@@ -63,8 +65,8 @@ También puede ejecutarse cualquier comando ESPHome:
 seleccionados. Esto garantiza que los cambios de configuración se desplieguen
 aunque no cambie la versión ESPHome.
 
-`make update-all` consulta primero la versión real y la huella de configuración
-de todos los dispositivos mediante su API nativa cifrada:
+`make update-all` consulta primero la versión y el `config-hash` nativo anunciados
+por cada dispositivo mediante mDNS, con la API cifrada como respaldo:
 
 - Si coinciden la versión ESPHome y la huella esperada, omite el dispositivo.
 - Si cualquiera es distinta, compila y actualiza por OTA.
@@ -79,14 +81,26 @@ de todos los dispositivos mediante su API nativa cifrada:
 La consulta usa `esphome_api_encryption_key` de `secrets.yaml`. El destino se
 obtiene de `inventory/devices.yaml`; por defecto es `<device_name>.local`.
 
-Cada firmware publica mediante `project_version` una huella reproducible de su
-YAML y todos sus `!include`. Los valores de secretos no forman parte de la
-huella. El primer `update-all` después de incorporar este mecanismo actualizará
-los dispositivos una vez para grabar el metadato.
+El hash usado es el oficial de ESPHome: FNV-1a de la configuración ya resuelta,
+incluidos `!include`, sustituciones y secretos. Por eso requiere la misma versión
+de ESPHome y el mismo `secrets.yaml` en todos los entornos, pero no depende de la
+ruta del checkout. `make status` compara ese valor con el TXT mDNS desplegado sin
+compilar ni actualizar ningún dispositivo.
 
-Los comandos `make compile` y `make update` inyectan la huella automáticamente.
-Una instalación realizada directamente desde ESPHome Device Builder publicará
-`unmanaged` y será corregida por el siguiente `make update-all`.
+En el nuevo Device Builder, `Local` procede del `build_info.json` generado por el
+último `compile` o `compile --only-generate` ejecutado en ese entorno. Una
+sincronización Git externa no actualiza necesariamente ese artefacto, por lo que
+el panel puede mostrar temporalmente un hash local antiguo. Tras generar o
+instalar desde ese dashboard, compara exactamente el mismo hash nativo.
+
+`scripts/device_builder_refresh.sh` automatiza ese refresco dentro del add-on de
+Home Assistant ejecutando `esphome compile --only-generate` para los YAML
+seleccionados. Puede recibir configs explícitos, `--all` o `--base/--head` para
+regenerar solo los dispositivos afectados por un rango Git.
+
+`config_fingerprint.py` conserva una huella SHA-256 del contenido versionado para
+analizar dependencias e inventario, pero ya no se inyecta en el firmware ni se
+usa para decidir actualizaciones.
 
 ## Cambios selectivos
 
@@ -113,8 +127,9 @@ Los logs se guardan en:
 - `scripts/esphome_validate_all.sh [yaml ...]`: valida uno o todos los YAML.
 - `scripts/esphome_update_all.sh [opciones] [yaml ...]`: compila o actualiza.
 - `scripts/esphome_update_affected.sh`: procesa dispositivos afectados por Git.
-- `scripts/device_info.py`: consulta versión ESPHome y huella por API; uso interno.
-- `scripts/config_fingerprint.py`: calcula la huella del grafo YAML.
+- `scripts/device_info.py`: consulta metadatos por mDNS, con respaldo por API.
+- `scripts/device_builder_refresh.sh`: regenera el `build_info.json` del add-on.
+- `scripts/config_fingerprint.py`: calcula la huella del contenido YAML versionado.
 - `scripts/affected_configs.py`: resuelve dispositivos afectados por cambios Git.
 - `scripts/inventory.py`: muestra el inventario operativo.
 
@@ -122,6 +137,7 @@ Opciones de actualización:
 
 ```text
 --compile-only       Compila sin contactar dispositivos
+--status             Compara configuración y firmware sin actualizar
 --all                Procesa todos los dispositivos
 --device ADDRESS     Destino explícito; requiere un único YAML
 --skip-current       Omite dispositivos con la versión ESPHome objetivo

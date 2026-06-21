@@ -18,6 +18,12 @@ make validate
 make update-all
 ```
 
+Para consultar toda la flota sin compilar ni actualizar:
+
+```bash
+make status
+```
+
 Para recompilar y actualizar todos los dispositivos aunque ya ejecuten la
 versión objetivo:
 
@@ -58,8 +64,9 @@ pioarduino genera durante las compilaciones ESP32.
 5. Ejecutar `make validate CONFIGS="nuevo-dispositivo.yaml"`.
 6. Realizar primera carga y después usar OTA mediante `make update`.
 
-`make inventory` muestra nombre, área, base, destino y huella esperada de todos
-los dispositivos.
+`make inventory` muestra nombre, área, base, destino y huella de contenido de
+todos los dispositivos. El estado desplegado se determina con el `config-hash`
+nativo de ESPHome.
 
 ## Sincronización con Home Assistant
 
@@ -74,6 +81,18 @@ El script está pensado para `/root/config/esphome`, usa `master` por defecto y
 solo acepta actualizaciones fast-forward. Se detiene sin modificar archivos si
 la rama activa no es la esperada, existen cambios locales versionados o el
 historial ha divergido.
+
+Después de cada fast-forward, el script refresca por defecto el `build_info.json`
+del ESPHome Device Builder para los YAML afectados. Eso hace que la columna
+`Local` del dashboard refleje el mismo hash nativo que `make status` compara con
+los dispositivos desplegados.
+
+Si en algún momento solo quieres sincronizar Git sin tocar la metadata del
+dashboard:
+
+```bash
+REFRESH_DEVICE_BUILDER=0 ./scripts/sync_home_assistant.sh
+```
 
 Por defecto solo sincroniza el checkout. Para actualizar por OTA los
 dispositivos afectados después de cada fast-forward:
@@ -94,4 +113,11 @@ añada esta entrada al crontab:
 ```
 
 Sin `UPDATE_AFFECTED=1`, la sincronización solo actualiza los YAML visibles por
-ESPHome Device Builder y no instala firmware.
+ESPHome Device Builder y no instala firmware. Si necesitas refrescar
+manualmente la metadata visible por el dashboard, puedes ejecutar:
+
+```bash
+./scripts/device_builder_refresh.sh --base origin/master
+./scripts/device_builder_refresh.sh ac-lavadora.yaml
+./scripts/device_builder_refresh.sh --all
+```

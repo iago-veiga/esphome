@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print the expected firmware project version for a device config."""
+"""Print the repository-content fingerprint for a device config."""
 
 from __future__ import annotations
 

@@ -35,7 +35,9 @@ La separación intencionada es:
   Home Assistant.
 - `secrets.yaml` nunca se versiona. `secrets.yaml.example` documenta sus claves.
 - `make update` siempre despliega configuraciones seleccionadas.
-- `make update-all` compara versiones y huellas antes de actualizar.
-- La huella de firmware se calcula sobre el YAML desplegable y sus `!include`.
+- `make update-all` compara la versión y el `config-hash` nativo antes de actualizar.
+- El estado desplegado usa el mismo hash de configuración resuelta que el Dashboard.
+- La huella SHA-256 del repositorio se calcula sobre el YAML y sus `!include` y se
+  usa solo para analizar contenido y dependencias.
 - El grafo de `!include` también determina los dispositivos afectados por cada
   cambio Git.

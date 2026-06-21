@@ -1,4 +1,4 @@
-.PHONY: help check inventory affected validate validate-affected compile compile-affected update update-affected update-all force-update force-update-all dashboard shell disk-usage clean-builds clean-cache clean-logs
+.PHONY: help check inventory status affected validate validate-affected compile compile-affected update update-affected update-all force-update force-update-all dashboard shell disk-usage clean-builds clean-cache clean-logs
 
 CONFIGS ?=
 DEVICE ?=
@@ -11,6 +11,7 @@ help:
 		'make version                         Show pinned ESPHome version' \
 		'make check                           Check repository conventions' \
 		'make inventory                       Show device inventory and fingerprints' \
+		'make status                          Compare desired and deployed firmware' \
 		'make affected [BASE=ref] [HEAD=ref]  List configs affected by Git changes' \
 		'make validate [CONFIGS="a.yaml ..."] Validate configs' \
 		'make validate-affected [BASE=ref]    Validate affected configs' \
@@ -37,6 +38,9 @@ check:
 
 inventory:
 	@$(COMPOSE) run --rm --entrypoint python3 esphome scripts/inventory.py
+
+status:
+	@./scripts/esphome_update_all.sh --status --all
 
 affected:
 	@./scripts/esphome_update_affected.sh --base "$(BASE)" --head "$(HEAD)" --list-only

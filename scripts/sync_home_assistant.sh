@@ -33,6 +33,10 @@ fi
 git merge --ff-only --quiet "origin/$BRANCH"
 echo "Updated $BRANCH: $local_commit -> $remote_commit"
 
+if [ "${REFRESH_DEVICE_BUILDER:-1}" = "1" ]; then
+  ./scripts/device_builder_refresh.sh --base "$local_commit" --head "$remote_commit"
+fi
+
 if [ "${UPDATE_AFFECTED:-0}" = "1" ]; then
   ./scripts/esphome_update_affected.sh --base "$local_commit" --head "$remote_commit"
 fi

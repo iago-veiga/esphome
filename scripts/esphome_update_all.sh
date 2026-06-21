@@ -31,6 +31,7 @@ Update configs passed as arguments. Updating every device requires --all.
 Options:
   --all                Process all top-level device configs
   --compile-only       Compile without contacting or updating devices
+  --status             Compare desired and deployed firmware without updating
   --device ADDRESS     Use explicit address/serial port; requires one config
   --skip-current       Skip devices already running the target ESPHome version
   --force              Always update; compatibility alias for default behavior
@@ -46,6 +47,9 @@ while [ "$#" -gt 0 ]; do
       ;;
     --compile-only)
       MODE="compile-only"
+      ;;
+    --status)
+      MODE="status"
       ;;
     --device)
       if [ "$#" -lt 2 ]; then
@@ -82,8 +86,8 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
-if [ "$MODE" != "run" ] && [ "$MODE" != "compile-only" ]; then
-  echo "ERROR: MODE must be run or compile-only" >&2
+if [ "$MODE" != "run" ] && [ "$MODE" != "compile-only" ] && [ "$MODE" != "status" ]; then
+  echo "ERROR: MODE must be run, compile-only or status" >&2
   exit 1
 fi
 
@@ -124,6 +128,7 @@ fail_run=0
 fail_compile=0
 skip_current=0
 unknown_version=0
+pending=0
 
 for f in "${configs[@]}"; do
   if [ ! -f "$f" ]; then
@@ -137,13 +142,13 @@ for f in "${configs[@]}"; do
   fi
 
   base="${f%.yaml}"
-  fingerprint="$(python3 scripts/config_fingerprint.py "$f")"
+  config_hash="$(esphome config-hash "$f" | sed 's/^0x//')"
   echo "== $f =="
-  echo "[fingerprint] $fingerprint"
+  echo "[config hash] $config_hash"
 
   if [ "$MODE" = "compile-only" ]; then
     echo "[compile] $f"
-    if esphome -s firmware_version "$fingerprint" compile "$f" \
+    if esphome compile "$f" \
       >"$LOGDIR/${base}.compile.log" 2>&1; then
       ok_compile=$((ok_compile+1))
     else
@@ -154,7 +159,7 @@ for f in "${configs[@]}"; do
     fi
   fi
 
-  if [ "$MODE" = "run" ]; then
+  if [ "$MODE" = "run" ] || [ "$MODE" = "status" ]; then
     device_name="$(sed -n 's/^[[:space:]]*device_name:[[:space:]]*//p' "$f" | head -n 1)"
     if [ -z "$device_name" ]; then
       device_name="$base"
@@ -165,28 +170,45 @@ for f in "${configs[@]}"; do
       target="$(python3 scripts/inventory.py --address "$device_name")"
     fi
 
-    if [ "$SKIP_CURRENT" = "1" ] && [[ "$target" != /dev/* ]]; then
+    if { [ "$SKIP_CURRENT" = "1" ] || [ "$MODE" = "status" ]; } && [[ "$target" != /dev/* ]]; then
       version_error="$LOGDIR/${base}.version.log"
       if current_info="$(timeout --kill-after=2s "${VERSION_CHECK_TIMEOUT}s" \
         python3 scripts/device_info.py "$target" "$device_name" \
         --timeout "$VERSION_CHECK_TIMEOUT" --details 2>"$version_error")"; then
-        IFS=$'\t' read -r current_version project_name current_fingerprint <<<"$current_info"
-        echo "[version] $target reports ESPHome $current_version, firmware ${current_fingerprint:-unknown}"
+        IFS=$'\t' read -r current_version project_name project_version current_config_hash <<<"$current_info"
+        echo "[version] $target reports ESPHome $current_version, config ${current_config_hash:-unknown}"
         if [ "$current_version" = "$VERSION" ] \
-          && [ "$project_name" = "meular.esphome" ] \
-          && [ "$current_fingerprint" = "$fingerprint" ]; then
+          && [ "$current_config_hash" = "$config_hash" ]; then
           echo "[skip current] $f"
           skip_current=$((skip_current+1))
           continue
         fi
+        if [ "$MODE" = "status" ]; then
+          echo "[pending] $f"
+          pending=$((pending+1))
+          continue
+        fi
       else
-        echo "[version unknown] $target; updating anyway (see $version_error)" >&2
+        if [ "$MODE" = "status" ]; then
+          echo "[unknown] $target (see $version_error)" >&2
+        else
+          echo "[version unknown] $target; updating anyway (see $version_error)" >&2
+        fi
         unknown_version=$((unknown_version+1))
+        if [ "$MODE" = "status" ]; then
+          continue
+        fi
       fi
     fi
 
+    if [ "$MODE" = "status" ]; then
+      echo "[unknown] $f (native config hash unavailable)" >&2
+      unknown_version=$((unknown_version+1))
+      continue
+    fi
+
     echo "[run] $f"
-    if esphome -s firmware_version "$fingerprint" run --no-logs --device "$target" "$f" \
+    if esphome run --no-logs --device "$target" "$f" \
       >"$LOGDIR/${base}.run.log" 2>&1; then
       ok_run=$((ok_run+1))
     else
@@ -203,6 +225,9 @@ echo "Run:     ok=$ok_run fail=$fail_run"
 echo "Compile: ok=$ok_compile fail=$fail_compile"
 echo "Skipped current: $skip_current"
 echo "Unknown version: $unknown_version"
+if [ "$MODE" = "status" ]; then
+  echo "Status: current=$skip_current pending=$pending unknown=$unknown_version"
+fi
 
 if [ "$fail_compile" -ne 0 ] || [ "$fail_run" -ne 0 ]; then
   exit 2
