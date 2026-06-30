@@ -1,6 +1,6 @@
 services:
   esphome:
-    image: ghcr.io/esphome/esphome:${ESPHOME_VERSION:-2026.6.1}
+    image: ghcr.io/esphome/esphome:${ESPHOME_VERSION:-2026.6.3}
     network_mode: host
     working_dir: /config
     volumes:

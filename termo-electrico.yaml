@@ -36,23 +36,68 @@ tuya:
             }
             id(termo_dp_101_raw).publish_state(x);
 
-climate:
+switch:
   - platform: tuya
+    id: termo_power
+    switch_datapoint: 1
+    internal: true
+
+water_heater:
+  - platform: template
     id: termo
     name: Termo
-    switch_datapoint: 1
-    active_state:
-      datapoint: 5
-      heating_value: 0
-    target_temperature_datapoint: 2
-    current_temperature_datapoint: 3
+    icon: mdi:water-boiler
+    current_temperature: !lambda "return id(termo_current_temperature).state;"
+    target_temperature: !lambda "return id(termo_target_temperature).state;"
+    is_on: !lambda "return id(termo_power).state;"
+    mode: !lambda |-
+      if (!id(termo_power).state) {
+        return water_heater::WATER_HEATER_MODE_OFF;
+      }
+
+      if (id(termo_mode).current_option() == "SMART") {
+        return water_heater::WATER_HEATER_MODE_ECO;
+      }
+      return water_heater::WATER_HEATER_MODE_ELECTRIC;
+    supported_modes:
+      - "OFF"
+      - ECO
+      - ELECTRIC
     visual:
       min_temperature: 30
       max_temperature: 75
-      temperature_step: 1
-    icon: mdi:water-boiler
+      target_temperature_step: 1
+    set_action:
+      - lambda: |-
+          if (id(termo).is_on()) {
+            id(termo_power).turn_on();
+          } else {
+            id(termo_power).turn_off();
+          }
+
+          if (id(termo).is_on()) {
+            auto mode_call = id(termo_mode).make_call();
+            if (id(termo).get_mode() == water_heater::WATER_HEATER_MODE_ECO) {
+              mode_call.set_option("SMART");
+            } else {
+              mode_call.set_option("STD");
+            }
+            mode_call.perform();
+          }
+
+          auto temp_call = id(termo_target_temperature).make_call();
+          temp_call.set_value(id(termo).get_target_temperature());
+          temp_call.perform();
 
 sensor:
+  - platform: tuya
+    id: termo_current_temperature
+    sensor_datapoint: 3
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+    internal: true
+
   # DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
   - platform: template
     name: "DP101 raw"
@@ -61,54 +106,6 @@ sensor:
     update_interval: never
     entity_category: diagnostic
     disabled_by_default: true
-
-datetime:
-  # UI cómoda en Home Assistant (selector de hora).
-  # Implementación conservadora:
-  # - HA -> termo: set_action escribe DP102/DP103 (solo hora)
-  # - termo -> HA: on_value del DP actualiza el estado del selector
-  # Sin restore_value para evitar escrituras a flash.
-  - platform: template
-    type: time
-    name: "Timer inicio"
-    id: termo_timer_start_time
-    optimistic: true
-    initial_value: "00:00:00"
-    set_action:
-      then:
-        - lambda: |-
-            int h = x.hour;
-            if (h < 0) h = 0;
-            if (h > 23) h = 23;
-
-            // Solo escribimos el DP si realmente cambia.
-            if (!isnan(id(termo_timer_start_hour).state) && (int) roundf(id(termo_timer_start_hour).state) == h) {
-              return;
-            }
-            auto call = id(termo_timer_start_hour).make_call();
-            call.set_value(h);
-            call.perform();
-
-  - platform: template
-    type: time
-    name: "Timer fin"
-    id: termo_timer_stop_time
-    optimistic: true
-    initial_value: "00:00:00"
-    set_action:
-      then:
-        - lambda: |-
-            int h = x.hour;
-            if (h < 0) h = 0;
-            if (h > 23) h = 23;
-
-            // Solo escribimos el DP si realmente cambia.
-            if (!isnan(id(termo_timer_stop_hour).state) && (int) roundf(id(termo_timer_stop_hour).state) == h) {
-              return;
-            }
-            auto call = id(termo_timer_stop_hour).make_call();
-            call.set_value(h);
-            call.perform();
 
 select:
   # Según tus pruebas:
@@ -126,58 +123,15 @@ select:
       2: STD
 
 number:
-  #  - DP102 = hora de inicio en modo TIMER
-  #  - DP103 = hora de fin en modo TIMER
   - platform: tuya
-    name: "Timer inicio (hora)"
-    id: termo_timer_start_hour
-    number_datapoint: 102
-    internal: true
-    min_value: 0
-    max_value: 23
+    id: termo_target_temperature
+    number_datapoint: 2
+    min_value: 30
+    max_value: 75
     step: 1
-    entity_category: config
-    on_value:
-      then:
-        - lambda: |-
-            int h = (int) roundf(x);
-            if (h < 0) h = 0;
-            if (h > 23) h = 23;
-
-            auto current = id(termo_timer_start_time).state_as_esptime();
-            if (current.hour == h && current.minute == 0 && current.second == 0) {
-              return;
-            }
-            char buf[9];
-            snprintf(buf, sizeof(buf), "%02d:00:00", h);
-            auto dt_call = id(termo_timer_start_time).make_call();
-            dt_call.set_time(buf);
-            dt_call.perform();
-  - platform: tuya
-    name: "Timer fin (hora)"
-    id: termo_timer_stop_hour
-    number_datapoint: 103
+    unit_of_measurement: "°C"
+    device_class: temperature
     internal: true
-    min_value: 0
-    max_value: 23
-    step: 1
-    entity_category: config
-    on_value:
-      then:
-        - lambda: |-
-            int h = (int) roundf(x);
-            if (h < 0) h = 0;
-            if (h > 23) h = 23;
-
-            auto current = id(termo_timer_stop_time).state_as_esptime();
-            if (current.hour == h && current.minute == 0 && current.second == 0) {
-              return;
-            }
-            char buf[9];
-            snprintf(buf, sizeof(buf), "%02d:00:00", h);
-            auto dt_call = id(termo_timer_stop_time).make_call();
-            dt_call.set_time(buf);
-            dt_call.perform();
 
 binary_sensor:
   - platform: tuya
