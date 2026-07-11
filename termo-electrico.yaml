@@ -5,6 +5,11 @@ packages:
   device_base: !include base_devices/esp12f.yaml
   logger_tuya: !include common/logger_tuya_warn.yaml
 
+external_components:
+  - source: github://pr#17323
+    components: [tuya]
+    refresh: 1h
+
 esphome:
   friendly_name: Termo
   comment: Control ESP8266 con MCU Tuya del termo eléctrico.
@@ -36,29 +41,24 @@ tuya:
             }
             id(termo_dp_101_raw).publish_state(x);
 
-switch:
-  - platform: tuya
-    id: termo_power
-    switch_datapoint: 1
-    internal: true
-
+# Termo eléctrico con MCU Tuya expuesto como water_heater nativo.
+#   DP1  (bool) -> on/off
+#   DP2  (int)  -> temperatura objetivo
+#   DP3  (int)  -> temperatura actual
+#   DP4  (enum) -> modo: 0=SMART, 1=TIMER, 2=STD
+# Mapeo: SMART -> ECO, STD -> ELECTRIC. TIMER queda fuera del water_heater
+# (se puede seguir viendo/ajustando con el select de abajo).
 water_heater:
-  - platform: template
+  - platform: tuya
     id: termo
     name: Termo
     icon: mdi:water-boiler
-    current_temperature: !lambda "return id(termo_current_temperature).state;"
-    target_temperature: !lambda "return id(termo_target_temperature).state;"
-    is_on: !lambda "return id(termo_power).state;"
-    mode: !lambda |-
-      if (!id(termo_power).state) {
-        return water_heater::WATER_HEATER_MODE_OFF;
-      }
-
-      if (id(termo_mode).current_option() == "SMART") {
-        return water_heater::WATER_HEATER_MODE_ECO;
-      }
-      return water_heater::WATER_HEATER_MODE_ELECTRIC;
+    switch_datapoint: 1
+    current_temperature_datapoint: 3
+    target_temperature_datapoint: 2
+    mode_datapoint: 4
+    eco_value: 0
+    electric_value: 2
     supported_modes:
       - "OFF"
       - ECO
@@ -67,38 +67,9 @@ water_heater:
       min_temperature: 30
       max_temperature: 75
       target_temperature_step: 1
-    set_action:
-      - lambda: |-
-          if (id(termo).is_on()) {
-            id(termo_power).turn_on();
-          } else {
-            id(termo_power).turn_off();
-          }
 
-          if (id(termo).is_on()) {
-            auto mode_call = id(termo_mode).make_call();
-            if (id(termo).get_mode() == water_heater::WATER_HEATER_MODE_ECO) {
-              mode_call.set_option("SMART");
-            } else {
-              mode_call.set_option("STD");
-            }
-            mode_call.perform();
-          }
-
-          auto temp_call = id(termo_target_temperature).make_call();
-          temp_call.set_value(id(termo).get_target_temperature());
-          temp_call.perform();
-
+# DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
 sensor:
-  - platform: tuya
-    id: termo_current_temperature
-    sensor_datapoint: 3
-    unit_of_measurement: "°C"
-    device_class: temperature
-    state_class: measurement
-    internal: true
-
-  # DP101 resulta ser enum (según logs), así que usamos template para evitar warnings.
   - platform: template
     name: "DP101 raw"
     id: termo_dp_101_raw
@@ -121,17 +92,6 @@ select:
       0: SMART
       1: TIMER
       2: STD
-
-number:
-  - platform: tuya
-    id: termo_target_temperature
-    number_datapoint: 2
-    min_value: 30
-    max_value: 75
-    step: 1
-    unit_of_measurement: "°C"
-    device_class: temperature
-    internal: true
 
 binary_sensor:
   - platform: tuya
